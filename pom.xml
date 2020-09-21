@@ -15,7 +15,8 @@
 <!--    <module>echo-server-zero</module>-->
     <module>knock-knock-server</module>
     <module>knock-knock-client</module>
-    <module>multi-knock-knock-server</module>
+    <module>chat-server</module>
+    <module>chat-client</module>
   </modules>
 
   <name>do_you_even_socket</name>
