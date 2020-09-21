@@ -70,40 +70,39 @@ class KnockKnockProtocol {
   }
 }
 
-//class KKMultiServerThread extends Thread {
-//  private Socket socket = null;
-//
-//  public KKMultiServerThread(Socket socket) {
-////    super("KKMultiServerThread");
-//    this.socket = socket;
-//  }
-//
-//  public void run() {
-//
-//    try (
-//            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-//            BufferedReader in = new BufferedReader(
-//                    new InputStreamReader(
-//                            socket.getInputStream()));
-//    ) {
-//      String inputLine, outputLine;
-//      KnockKnockProtocol kkp = new KnockKnockProtocol();
-//      outputLine = kkp.processInput(null);
-//      out.println(outputLine);
-//
-//      while ((inputLine = in.readLine()) != null) {
-//        System.out.println("This client is running on: " + Thread.currentThread().getName());
-//        outputLine = kkp.processInput(inputLine);
-//        out.println(outputLine);
-//        if (outputLine.equals("Bye"))
-//          break;
-//      }
-//      socket.close();
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//  }
-//}
+class KKMultiServerClientHandler implements Runnable {
+  private Socket socket = null;
+
+  public KKMultiServerClientHandler(Socket socket) {
+    this.socket = socket;
+  }
+
+  public void run() {
+
+    try (
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            socket.getInputStream()));
+    ) {
+      String inputLine, outputLine;
+      KnockKnockProtocol kkp = new KnockKnockProtocol();
+      outputLine = kkp.processInput(null);
+      out.println(outputLine);
+
+      while ((inputLine = in.readLine()) != null) {
+        System.out.println("This client is running on: " + Thread.currentThread().getName());
+        outputLine = kkp.processInput(inputLine);
+        out.println(outputLine);
+        if (outputLine.equals("Bye"))
+          break;
+      }
+      socket.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
 
 public class KKMultiServer {
   public static void main(String[] args) throws IOException {
@@ -120,36 +119,8 @@ public class KKMultiServer {
     try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
       while (listening) {
         final Socket socket = serverSocket.accept();
-        Runnable runnable = new Runnable() {
-          @Override
-          public void run() {
-            try (
-                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()));
-            ) {
-              String inputLine, outputLine;
-              KnockKnockProtocol kkp = new KnockKnockProtocol();
-              outputLine = kkp.processInput(null);
-              out.println(outputLine);
-
-              while ((inputLine = in.readLine()) != null) {
-                System.out.println("This client is running on: " + Thread.currentThread().getName());
-                outputLine = kkp.processInput(inputLine);
-                out.println(outputLine);
-                if (outputLine.equals("Bye"))
-                  break;
-              }
-              socket.close();
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        };
+        KKMultiServerClientHandler runnable = new KKMultiServerClientHandler(socket);
         pool.execute(runnable);
-        // Old multithreaded code.
-//        new KKMultiServerThread(serverSocket.accept()).start();
       }
     } catch (IOException e) {
       System.err.println("Could not listen on port " + portNumber);
