@@ -9,6 +9,8 @@
     <file url="file://$PROJECT_DIR$/knock-knock-client/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/knock-knock-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/knock-knock-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/multi-knock-knock-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/multi-knock-knock-server/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/serverzero/src/main/java" charset="UTF-8" />
   </component>
 </project>
