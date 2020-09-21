@@ -7,9 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="serverzero" />
+        <module name="chat-server" />
         <module name="knock-knock-server" />
         <module name="multi-knock-knock-server" />
         <module name="knock-knock-client" />
+        <module name="NIO-server" />
+        <module name="chat-client" />
         <module name="client" />
         <module name="echo-client" />
         <module name="echo-server-zero" />
