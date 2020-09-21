@@ -72,7 +72,7 @@ class KKMultiServerThread extends Thread {
   private Socket socket = null;
 
   public KKMultiServerThread(Socket socket) {
-    super("KKMultiServerThread");
+//    super("KKMultiServerThread");
     this.socket = socket;
   }
 
@@ -90,6 +90,7 @@ class KKMultiServerThread extends Thread {
       out.println(outputLine);
 
       while ((inputLine = in.readLine()) != null) {
+        System.out.println("This client is running on: " + Thread.currentThread().getName());
         outputLine = kkp.processInput(inputLine);
         out.println(outputLine);
         if (outputLine.equals("Bye"))
