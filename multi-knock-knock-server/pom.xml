@@ -44,7 +44,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>research.App</mainClass>
+                            <mainClass>research.KKMultiServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
