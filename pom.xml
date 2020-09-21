@@ -13,6 +13,7 @@
 <!--    <module>serverzero</module>-->
 <!--    <module>echo-client</module>-->
 <!--    <module>echo-server-zero</module>-->
+    <module>multi-knock-knock-server</module>
     <module>knock-knock-server</module>
     <module>knock-knock-client</module>
     <module>chat-server</module>
