@@ -26,6 +26,7 @@ import java.util.Scanner;
 * When the server sends a line beginning with "MESSAGE" then all characters
 * following this string should be displayed in its message area.
 * */
+
 public class ChatClient {
     String serverAddress;
     Scanner in;
