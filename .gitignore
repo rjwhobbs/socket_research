@@ -7,3 +7,4 @@ shelf/
 # Editor-based HTTP Client requests
 httpRequests/
 target/
+.idea/
