@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class AsyncEchoServer2 {
   private AsynchronousServerSocketChannel serverChannel;
-  private AsynchronousSocketChannel clientChannel;
+//  private AsynchronousSocketChannel clientChannel;
 //  private HashMap<Integer, AsynchronousSocketChannel> clientChannels = new HashMap<>();
 //  private static Integer clientsIndex = 0;
 
@@ -33,14 +33,14 @@ public class AsyncEchoServer2 {
             System.out.println("Accept call back initiated");
             if (serverChannel.isOpen())
               serverChannel.accept(null, this);
-            clientChannel = result;
-            if ((clientChannel != null) && (clientChannel.isOpen())) {
-              ReadWriteHandler handler = new ReadWriteHandler();
+//            clientChannel = result;
+            if ((result != null) && (result.isOpen())) {
+              ReadWriteHandler handler = new ReadWriteHandler(result);
               ByteBuffer buffer = ByteBuffer.allocate(32);
               Map<String, Object> readInfo = new HashMap<>();
               readInfo.put("action", "read");
               readInfo.put("buffer", buffer);
-              clientChannel.read(buffer, readInfo, handler);
+              handler.clientChannel.read(buffer, readInfo, handler);
             }
           }
 
@@ -65,6 +65,11 @@ public class AsyncEchoServer2 {
   }
 
   class ReadWriteHandler implements CompletionHandler<Integer, Map<String, Object>> {
+    AsynchronousSocketChannel clientChannel;
+
+    ReadWriteHandler(AsynchronousSocketChannel clientChannel) {
+      this.clientChannel = clientChannel;
+    }
 
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
