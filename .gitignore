@@ -8,4 +8,4 @@ shelf/
 httpRequests/
 target/
 .idea/
-do_you_even_socket.iml
+*.iml
