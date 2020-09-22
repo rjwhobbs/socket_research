@@ -19,6 +19,7 @@
     <module>chat-server</module>
     <module>chat-client</module>
     <module>NIO-server</module>
+    <module>async-echo-server-zero</module>
   </modules>
 
   <name>do_you_even_socket</name>

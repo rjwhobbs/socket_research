@@ -14,13 +14,13 @@
         <module name="NIO-server" />
         <module name="chat-client" />
         <module name="client" />
+        <module name="async-echo-server-zero" />
         <module name="echo-client" />
         <module name="echo-server-zero" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="client" target="1.7" />
-      <module name="echo-client" target="1.7" />
       <module name="echo-server" target="1.7" />
       <module name="echo-server-zero" target="1.7" />
       <module name="MKK-server" target="1.7" />

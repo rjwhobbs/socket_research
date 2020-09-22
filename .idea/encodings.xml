@@ -2,7 +2,8 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/NIO-server/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/NIO-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/async-echo-server-zero/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/async-echo-server-zero/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chat-client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chat-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/client/src/main/java" charset="UTF-8" />
