@@ -52,6 +52,9 @@ public class AsyncEchoServer2 {
         });
         System.out.println("------------Outside the accept callback.----------------");
         try {
+          // This method of "pausing" the while loop only works
+          // if noting is inserted on stdin on this process,
+          // not ideal.
           System.in.read();
         } catch (IOException e) {
           System.out.println("Inner catch");
@@ -73,7 +76,6 @@ public class AsyncEchoServer2 {
 
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
-      int bytesRead;
       // So this method loops when I kill all sockets, why?
       System.out.println("RW handler started");
       Map<String, Object> actionInfo = attachment;
@@ -82,12 +84,14 @@ public class AsyncEchoServer2 {
         System.out.println("Doing a read.");
         ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
         System.out.println("Read ByteBuffer pos: " + buffer.position());
-        if (buffer.position() == 0) {
+        System.out.println("Num of bytes read: " + result);
+        // Result from read operation
+        if (result == -1) {
           try {
             System.out.println("Closing client.");
             clientChannel.close();
           } catch (IOException e) {
-            System.out.println("Error in client close.");
+            System.out.println("Error in client close().");
             e.printStackTrace();
           }
         }
@@ -113,7 +117,7 @@ public class AsyncEchoServer2 {
 
     @Override
     public void failed(Throwable exc, Map<String, Object> attachment) {
-      System.out.println("There was an error in the read write handler");
+      System.out.println("ReadWriteHandler failed() method call:");
       System.out.println(exc.getMessage());
     }
 
