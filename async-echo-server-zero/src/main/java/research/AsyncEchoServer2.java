@@ -86,8 +86,6 @@ public class AsyncEchoServer2 {
       if ("read".equals(action)) {
         System.out.println("Doing a read.");
         ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
-        System.out.println("Read ByteBuffer pos: " + buffer.position());
-        System.out.println("Num of bytes read: " + result);
         // Result from read operation
         if (result == -1) {
           try {
@@ -98,14 +96,12 @@ public class AsyncEchoServer2 {
             e.printStackTrace();
           }
         }
-        String test = new String(buffer.array());
-        System.out.println(test);
+        String fromBuffer = new String(buffer.array());
+        String message = "echo: ";
+        String stringToWrite = message + fromBuffer;
         buffer.flip();
         actionInfo.put("action", "write");
-//        ByteBuffer message = ByteBuffer.allocate(64);
-//        message.put(buffer);
-//        System.out.println("Server meassage: " + buffer.array());
-        clientChannel.write(buffer, actionInfo, this);
+        clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
         buffer.clear();
       } else if ("write".equals(action)) {
         System.out.println("Doing a write.");
