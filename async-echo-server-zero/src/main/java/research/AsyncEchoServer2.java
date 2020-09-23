@@ -33,7 +33,6 @@ public class AsyncEchoServer2 {
             System.out.println("Accept call back initiated");
             if (serverChannel.isOpen())
               serverChannel.accept(null, this);
-//            clientChannel = result;
             if ((result != null) && (result.isOpen())) {
               ReadWriteHandler handler = new ReadWriteHandler(result);
               ByteBuffer buffer = ByteBuffer.allocate(32);
@@ -84,7 +83,7 @@ public class AsyncEchoServer2 {
       Map<String, Object> actionInfo = attachment;
       String action = (String) actionInfo.get("action");
       if ("read".equals(action)) {
-        System.out.println("Doing a read.");
+        System.out.println("Read is done.");
         ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
         // Result from read operation
         if (result == -1) {
@@ -94,6 +93,8 @@ public class AsyncEchoServer2 {
           } catch (IOException e) {
             System.out.println("Error in client close().");
             e.printStackTrace();
+          } finally {
+            return;
           }
         }
         String fromBuffer = new String(buffer.array());
@@ -104,7 +105,7 @@ public class AsyncEchoServer2 {
         clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
         buffer.clear();
       } else if ("write".equals(action)) {
-        System.out.println("Doing a write.");
+        System.out.println("Write is done");
         ByteBuffer buffer = ByteBuffer.allocate(32);
         actionInfo.put("action", "read");
         actionInfo.put("buffer", buffer);
