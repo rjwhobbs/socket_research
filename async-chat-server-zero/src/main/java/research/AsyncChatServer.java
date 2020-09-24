@@ -1,6 +1,5 @@
 package research;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -29,16 +28,22 @@ public class AsyncChatServer {
           @Override
           public void completed(AsynchronousSocketChannel result, Object attachment) {
             System.out.println("Accept call back initiated");
+            String newClientID;
             if (serverChannel.isOpen()) {
+              // So this here to open another async listener for more clients
+              // in the background, 'this' refers to the completion handler.
               serverChannel.accept(null, this);
             }
             if ((result != null) && (result.isOpen())) {
-              ReadWriteHandler handler = new ReadWriteHandler(result);
+              newClientID = Integer.toString(clientsIndex);
+              clientChannels.put(newClientID, result);
+              clientsIndex++;
+              ReadWriteHandler handler = new ReadWriteHandler(newClientID);
               ByteBuffer buffer = ByteBuffer.allocate(32);
               Map<String, Object> readInfo = new HashMap<>();
               readInfo.put("action", "read");
               readInfo.put("buffer", buffer);
-              handler.clientChannel.read(buffer, readInfo, handler);
+              handler.currentClient.read(buffer, readInfo, handler);
             }
           }
 
@@ -66,10 +71,12 @@ public class AsyncChatServer {
   }
 
   class ReadWriteHandler implements CompletionHandler<Integer, Map<String, Object>> {
-    AsynchronousSocketChannel clientChannel;
+    AsynchronousSocketChannel currentClient;
+    String currentClientID;
 
-    ReadWriteHandler(AsynchronousSocketChannel clientChannel) {
-      this.clientChannel = clientChannel;
+    ReadWriteHandler(String clientID) {
+      this.currentClientID = clientID;
+      this.currentClient = clientChannels.get(clientID);
     }
 
     // It is import to remember that the calls to client.read() and write()
@@ -88,7 +95,7 @@ public class AsyncChatServer {
         if (result == -1) {
           try {
             System.out.println("Closing client.");
-            clientChannel.close();
+            currentClient.close();
           } catch (IOException e) {
             System.out.println("Error in client close().");
             e.printStackTrace();
@@ -101,18 +108,18 @@ public class AsyncChatServer {
         String stringToWrite = message + fromBuffer;
         buffer.flip();
         actionInfo.put("action", "write");
-        clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
+        currentClient.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
         buffer.clear();
       } else if ("write".equals(action)) {
         System.out.println("Write is done");
         ByteBuffer buffer = ByteBuffer.allocate(32);
         actionInfo.put("action", "read");
         actionInfo.put("buffer", buffer);
-        clientChannel.read(buffer, actionInfo, this);
+        currentClient.read(buffer, actionInfo, this);
       } else {
         System.out.println("***************End of the RW Handler*************************");
       }
-      if (clientChannel.isOpen()) {
+      if (currentClient.isOpen()) {
         System.out.println("<<<<<<<<<<<<<<<<<<<<<<<Client socket is open >>>>>>>>>>>>>>>>>>>>>>");
       } else {
         System.out.println("<<<<<<!!!!!!!<<<<<<<<<<<<<<Client socket is Closed >>>>>>>>!!!!!!>>>>>>>>>");
