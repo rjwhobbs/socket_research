@@ -82,16 +82,17 @@ public class ChatServer {
                         }
                     }
                 }
-
                 // Now that a successful name has been chosen, add the socket's print writer
                 // to the set of all writers so this client can receive broadcast messages.
                 // But BEFORE THAT, let everyone else know that the new person has joined!
                 out.println("NAMEACCEPTED " + name);
+                //TODO refactor
                 for (PrintWriter writer : writers) {
                     writer.println("MESSAGE " + name + " has joined");
                 }
                 writers.add(out);
 
+//                TODO refactor
                 // Accept messages from this client and broadcast them.
                 while (true) {
                     String input = in.nextLine();
@@ -115,9 +116,11 @@ public class ChatServer {
                         writer.println("MESSAGE " + name + " has left");
                     }
                 }
+//                TODO
                 try {
                     socket.close();
                 } catch (IOException e) {
+                    System.out.println(e.getMessage());
                 }
             }
         }
