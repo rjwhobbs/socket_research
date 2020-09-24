@@ -5,6 +5,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 
+/*
+*  https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html
+* */
 public class ExecutorService {
     public static void main(String[] args) throws IOException {
         System.out.println("Inside: " + Thread.currentThread().getName());
@@ -37,7 +40,9 @@ public class ExecutorService {
         Handler(Socket socket) { this.socket = socket; }
         public void run() {
             // read and service request on socket
-            System.out.println("Connected");
+            System.out.println("==== Client Connected ====");
+            System.out.println("Name - " + Thread.currentThread().getName());
+            System.out.println("ID - " + Thread.currentThread().getId());
         }
     }
 }
