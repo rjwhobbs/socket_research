@@ -130,7 +130,8 @@ public class AsyncChatServer {
         String debug = new String(messageToTarget.array());
         System.out.println(debug);
 //        targetClient.shutdownInput();
-        targetClient.write(ByteBuffer.wrap("YO".getBytes())).get();
+        messageToTarget.flip();
+        targetClient.write(messageToTarget).get();
       } catch (InterruptedException e) {
         e.printStackTrace();
       } catch (ExecutionException e) {
