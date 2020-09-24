@@ -73,7 +73,6 @@ public class AsyncChatServer {
               } catch (ExecutionException e) {
                 e.printStackTrace();
               }
-//              handler.currentClient.read(buffer, readInfo, handler);
             }
           }
 
@@ -109,10 +108,6 @@ public class AsyncChatServer {
       this.currentClient = clientChannels.get(clientID);
     }
 
-    // It is import to remember that the calls to client.read() and write()
-    // are async and that this handler is only the callback to those reads
-    // and writes, at a glance it might seem like an implementation which
-    // of course it isn't.
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
       System.out.println("RW handler started");
@@ -126,10 +121,8 @@ public class AsyncChatServer {
         e.printStackTrace();
       }
       try {
-//        currentClient.read(messageToTarget).get();
         String debug = new String(messageToTarget.array());
         System.out.println(debug);
-//        targetClient.shutdownInput();
         messageToTarget.flip();
         targetClient.write(messageToTarget).get();
       } catch (InterruptedException e) {
@@ -138,44 +131,6 @@ public class AsyncChatServer {
         e.printStackTrace();
       }
       System.out.println("Done sending one message from client to target.");
-
-//      String action = (String) actionInfo.get("action");
-//      if ("read".equals(action)) {
-//        System.out.println("Read is done.");
-//        ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
-//        // Result from read operation
-//        if (result == -1) {
-//          try {
-//            System.out.println("Closing client.");
-//            currentClient.close();
-//          } catch (IOException e) {
-//            System.out.println("Error in client close().");
-//            e.printStackTrace();
-//          } finally {
-//            return;
-//          }
-//        }
-//        String fromBuffer = new String(buffer.array());
-//        String message = "echo: ";
-//        String stringToWrite = message + fromBuffer;
-//        buffer.flip();
-//        actionInfo.put("action", "write");
-//        currentClient.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
-//        buffer.clear();
-//      } else if ("write".equals(action)) {
-//        System.out.println("Write is done");
-//        ByteBuffer buffer = ByteBuffer.allocate(32);
-//        actionInfo.put("action", "read");
-//        actionInfo.put("buffer", buffer);
-//        currentClient.read(buffer, actionInfo, this);
-//      } else {
-//        System.out.println("***************End of the RW Handler*************************");
-//      }
-//      if (currentClient.isOpen()) {
-//        System.out.println("<<<<<<<<<<<<<<<<<<<<<<<Client socket is open >>>>>>>>>>>>>>>>>>>>>>");
-//      } else {
-//        System.out.println("<<<<<<!!!!!!!<<<<<<<<<<<<<<Client socket is Closed >>>>>>>>!!!!!!>>>>>>>>>");
-//      }
     }
 
     @Override
