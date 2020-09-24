@@ -1,5 +1,6 @@
 package research;
 
+import javax.sound.midi.Soundbank;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -8,6 +9,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class AsyncChatServer {
   private AsynchronousServerSocketChannel serverChannel;
@@ -26,7 +28,7 @@ public class AsyncChatServer {
         serverChannel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
 
           @Override
-          public void completed(AsynchronousSocketChannel result, Object attachment) {
+          public void completed(AsynchronousSocketChannel newClient, Object attachment) {
             System.out.println("Accept call back initiated");
             String newClientID;
             if (serverChannel.isOpen()) {
@@ -34,16 +36,27 @@ public class AsyncChatServer {
               // in the background, 'this' refers to the completion handler.
               serverChannel.accept(null, this);
             }
-            if ((result != null) && (result.isOpen())) {
+            if ((newClient != null) && (newClient.isOpen())) {
               newClientID = Integer.toString(clientsIndex);
-              clientChannels.put(newClientID, result);
+              clientChannels.put(newClientID, newClient);
               clientsIndex++;
               ReadWriteHandler handler = new ReadWriteHandler(newClientID);
               ByteBuffer buffer = ByteBuffer.allocate(32);
               Map<String, Object> readInfo = new HashMap<>();
               readInfo.put("action", "read");
               readInfo.put("buffer", buffer);
-              handler.currentClient.read(buffer, readInfo, handler);
+              // So the get() call on this overloaded write() blocks,
+              // it will only return once it's done writing but it needs
+              // to block because the client needs to know their ID, we
+              // can't initiate other logic until then.
+              try {
+                newClient.write(ByteBuffer.wrap(newClientID.getBytes())).get();
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              } catch (ExecutionException e) {
+                e.printStackTrace();
+              }
+//              handler.currentClient.read(buffer, readInfo, handler);
             }
           }
 
