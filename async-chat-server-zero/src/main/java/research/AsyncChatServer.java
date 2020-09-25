@@ -189,7 +189,7 @@ public class AsyncChatServer {
                   + currentClientRef.getID()
                   +  ": " + message;
         }
-        
+
         bufferToTarget.flip();
         targetClient.write(ByteBuffer.wrap(formattedMessage.getBytes())).get();
         bufferToTarget.clear();
