@@ -1,6 +1,5 @@
 package research;
 
-import javax.sound.midi.Soundbank;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -36,7 +35,7 @@ class ClientReference {
     return client;
   }
 
-  public Boolean getAcceptedChat() {
+  public Boolean hasAcceptedChat() {
     return acceptedChat;
   }
 
@@ -84,7 +83,6 @@ public class AsyncChatServer {
               clientChannels.put(newClientID, newClientRef);
               System.out.println("Client Channels dump: " + clientChannels.entrySet());
               clientsIndex++;
-              readInfo.put("action", "read");
               readInfo.put("buffer", buffer);
               // So the get() calls on these overloaded write() and read()'s block,
               // they will only return once they're done but they need
@@ -94,7 +92,7 @@ public class AsyncChatServer {
               try {
                 welcomeMessage = "Welcome to the chat server, your ID is: "
                         + newClientID
-                        + "\nPlease type the ID of the person you want to chat to: ";
+                        + "\nPlease type the ID of the client you want to chat to:\n";
                 newClient.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
                 newClient.read(clientInput).get();
                 targetClientID = new String(clientInput.array());
@@ -104,6 +102,8 @@ public class AsyncChatServer {
                 System.out.println("The clients input: " + targetClientID + "#");
                 targetClient = targetClientObject.getClient();
                 newClientRef.setAcceptedChat(true);
+                readInfo.put("targetClient", targetClientObject);
+                readInfo.put("currentClient", newClientRef);
                 if (targetClient != null) {
 //                  readInfo.put("targetClient", targetClient);
                   ReadWriteHandler handler = new ReadWriteHandler(newClient, targetClient);
@@ -163,7 +163,11 @@ public class AsyncChatServer {
     public void completed(Integer result, Map<String, Object> attachment) {
       System.out.println("RW handler started");
       ByteBuffer bufferToTarget = (ByteBuffer) attachment.get("buffer");
-      String messageToTarget;
+      ClientReference targetClientRef = (ClientReference) attachment.get("targetClient");
+      ClientReference currentClientRef = (ClientReference) attachment.get("currentClient");
+      System.out.println(targetClientRef.hasAcceptedChat());
+      String formattedMessage;
+
       try {
         System.out.println("Trying to connect to: " + targetClient.getRemoteAddress().toString() +
                 " from " + currentClient.getRemoteAddress().toString());
@@ -173,8 +177,21 @@ public class AsyncChatServer {
       try {
         String message = new String(bufferToTarget.array());
         System.out.println(message);
+
+        if (!targetClientRef.hasAcceptedChat()) {
+          formattedMessage = "client #"
+                  + currentClientRef.getID()
+                  + ": " + message
+                  + "To reply to this message type the clients ID #:\n";
+        }
+        else {
+          formattedMessage = "client #"
+                  + currentClientRef.getID()
+                  +  ": " + message;
+        }
+        
         bufferToTarget.flip();
-        targetClient.write(bufferToTarget).get();
+        targetClient.write(ByteBuffer.wrap(formattedMessage.getBytes())).get();
         bufferToTarget.clear();
         attachment.put("buffer", bufferToTarget);
         currentClient.read(bufferToTarget, attachment, this);
