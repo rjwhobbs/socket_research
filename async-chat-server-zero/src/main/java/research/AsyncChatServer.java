@@ -34,6 +34,7 @@ public class AsyncChatServer {
             ByteBuffer clientInput = ByteBuffer.allocate(10);
             String targetClientID;
             AsynchronousSocketChannel targetClient;
+            String welcomeMessage;
             if (serverChannel.isOpen()) {
               // So this here to open another async listener for more clients
               // in the background, 'this' refers to the completion handler.
@@ -54,7 +55,8 @@ public class AsyncChatServer {
               // need to know which target client the current client wants
               // to communicate with.
               try {
-                newClient.write(ByteBuffer.wrap(newClientID.getBytes())).get();
+                welcomeMessage = "Welcome to the chat server, your ID is: " + newClientID;
+                newClient.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
                 newClient.read(clientInput).get();
                 targetClientID = new String(clientInput.array());
                 targetClientID = targetClientID.trim();
