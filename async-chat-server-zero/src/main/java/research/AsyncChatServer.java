@@ -61,7 +61,7 @@ public class AsyncChatServer {
                 targetClient = clientChannels.get(targetClientID);
                 System.out.println("The clients input: " + targetClientID + "#");
                 if (targetClient != null) {
-                  readInfo.put("targetClient", targetClient);
+//                  readInfo.put("targetClient", targetClient);
                   ReadWriteHandler handler = new ReadWriteHandler(newClient, targetClient);
                   handler.currentClient.read(buffer, readInfo, handler);
                 }
@@ -128,6 +128,9 @@ public class AsyncChatServer {
         System.out.println(debug);
         messageToTarget.flip();
         targetClient.write(messageToTarget).get();
+        messageToTarget.clear();
+        attachment.put("buffer", messageToTarget);
+        currentClient.read(messageToTarget, attachment, this);
       } catch (InterruptedException e) {
         e.printStackTrace();
       } catch (ExecutionException e) {
