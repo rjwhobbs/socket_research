@@ -44,7 +44,6 @@ public class AsyncChatServer {
               clientChannels.put(newClientID, newClient);
               System.out.println("Client Channels dump: " + clientChannels.entrySet());
               clientsIndex++;
-              ReadWriteHandler handler = new ReadWriteHandler(newClientID);
               ByteBuffer buffer = ByteBuffer.allocate(32);
               Map<String, Object> readInfo = new HashMap<>();
               readInfo.put("action", "read");
@@ -63,6 +62,7 @@ public class AsyncChatServer {
                 System.out.println("The clients input: " + targetClientID + "#");
                 if (targetClient != null) {
                   readInfo.put("targetClient", targetClient);
+                  ReadWriteHandler handler = new ReadWriteHandler(newClient, targetClient);
                   handler.currentClient.read(buffer, readInfo, handler);
                 }
                 else {
@@ -101,19 +101,22 @@ public class AsyncChatServer {
 
   class ReadWriteHandler implements CompletionHandler<Integer, Map<String, Object>> {
     AsynchronousSocketChannel currentClient;
-    String currentClientID;
+    AsynchronousSocketChannel targetClient;
 
-    ReadWriteHandler(String clientID) {
-      this.currentClientID = clientID;
-      this.currentClient = clientChannels.get(clientID);
+    ReadWriteHandler(
+            AsynchronousSocketChannel currentClient,
+            AsynchronousSocketChannel targetClient
+    ) {
+      this.currentClient = currentClient;
+      this.targetClient = targetClient;
     }
 
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
       System.out.println("RW handler started");
-      Map<String, Object> actionInfo = attachment;
-      AsynchronousSocketChannel targetClient = (AsynchronousSocketChannel) attachment.get("targetClient");
-      ByteBuffer messageToTarget = (ByteBuffer) actionInfo.get("buffer");
+//      Map<String, Object> actionInfo = attachment;
+//      AsynchronousSocketChannel targetClient = (AsynchronousSocketChannel) attachment.get("targetClient");
+      ByteBuffer messageToTarget = (ByteBuffer) attachment.get("buffer");
       try {
         System.out.println("Trying to connect to: " + targetClient.getRemoteAddress().toString() +
                 " from " + currentClient.getRemoteAddress().toString());
