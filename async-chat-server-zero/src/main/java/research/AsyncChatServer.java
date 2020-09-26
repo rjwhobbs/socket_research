@@ -190,9 +190,13 @@ public class AsyncChatServer {
                   + currentClientRef.getID()
                   +  ": " + message;
         }
-
+        // flip() just sets the seek() position to zero
         bufferToTarget.flip();
         targetClient.write(ByteBuffer.wrap(formattedMessage.getBytes())).get();
+        // This whole process here sets the bytes to zero,
+        // clear() just sets the position to zero, it doesn't actually "clear"
+        // the buffer, feels a bit hacky. I wonder if allocating a new buffer isn't
+        // better?
         bufferToTarget.clear();
         bufferToTarget.put(new byte[32]);
         bufferToTarget.clear();
