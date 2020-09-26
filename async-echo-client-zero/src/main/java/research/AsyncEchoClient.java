@@ -1,3 +1,4 @@
+// This code is very broken or the echo server is broken, dunno.
 package research;
 
 import java.io.BufferedReader;
@@ -19,7 +20,7 @@ public class AsyncEchoClient {
   private AsyncEchoClient() {
     try {
       client = AsynchronousSocketChannel.open();
-      InetSocketAddress hostAddress = new InetSocketAddress("localhost", 5000);
+      InetSocketAddress hostAddress = new InetSocketAddress("localhost", 4999);
       future = client.connect(hostAddress);
       start();
 
@@ -45,7 +46,7 @@ public class AsyncEchoClient {
   public String sendMessage(String message) {
     byte[] byteMsg = message.getBytes();
     ByteBuffer buffer = ByteBuffer.wrap(byteMsg);
-    Future<Integer> writeResult = client.write(ByteBuffer.wrap("Words".getBytes()));
+    Future<Integer> writeResult = client.write(buffer);
 
     try {
       writeResult.get();
