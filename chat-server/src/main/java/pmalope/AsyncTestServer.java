@@ -2,6 +2,7 @@ package pmalope;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.Buffer;
 import java.nio.channels.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -13,7 +14,7 @@ import java.util.concurrent.Future;
 public class AsyncTestServer {
 
     public static void main(String[] args) {
-        new AsyncTestServer().futureApproach();
+        new AsyncTestServer().completionHandlerApproach();
     }
 
 //    TODO
@@ -27,9 +28,7 @@ public class AsyncTestServer {
 
             AsynchronousSocketChannel client = future.get();
             System.out.println("Connection Accepted");
-            System.out.println("Client IP address" + client.getLocalAddress());
-            System.out.println("Debug " + future.isDone());
-
+            System.out.println("Client IP address - " + client.getLocalAddress());
         } catch (IOException | ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -37,6 +36,24 @@ public class AsyncTestServer {
 
 //    TODO
     public void completionHandlerApproach() {
+        System.out.println("CompletionHandler Approach...");
+        try {
+            AsynchronousServerSocketChannel server
+                    = AsynchronousServerSocketChannel.open().bind(new InetSocketAddress("localhost", 5000));
 
+            server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
+                @Override
+                public void completed(AsynchronousSocketChannel result, Object attachment) {
+                    System.out.println("connected");
+                }
+
+                @Override
+                public void failed(Throwable exc, Object attachment) {
+                    System.out.println("connection failed");
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
