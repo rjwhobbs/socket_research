@@ -48,6 +48,7 @@ public class AsyncEchoClient {
                     System.out.println(":::ERROR::: please enter your message or type bye to quit");
                 } else {
                     String response = sendMessage(input);
+                    System.out.println(":::DEBUG::: Response from server");
                     System.out.println(response);
                 }
 //                System.out.println(input);
