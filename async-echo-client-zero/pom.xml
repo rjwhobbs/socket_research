@@ -44,7 +44,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>.App</mainClass>
+                            <mainClass>research.AsyncEchoClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

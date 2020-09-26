@@ -102,6 +102,7 @@ public class AsyncEchoServer2 {
         String stringToWrite = message + fromBuffer;
         buffer.flip();
         actionInfo.put("action", "write");
+        System.out.println("Sending this to the client: " + stringToWrite);
         clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
         buffer.clear();
       } else if ("write".equals(action)) {
