@@ -1,6 +1,5 @@
 package research;
 
-import javax.sound.midi.Soundbank;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -11,10 +10,44 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+class ClientReference {
+  private String ID;
+  private AsynchronousSocketChannel client;
+  private Boolean acceptedChat;
+
+  ClientReference() {}
+
+  ClientReference(
+          String ID,
+          AsynchronousSocketChannel client,
+          Boolean acceptedChat
+  ) {
+    this.ID = ID;
+    this.client = client;
+    this.acceptedChat = acceptedChat;
+  }
+
+  public String getID() {
+    return ID;
+  }
+
+  public AsynchronousSocketChannel getClient() {
+    return client;
+  }
+
+  public Boolean hasAcceptedChat() {
+    return acceptedChat;
+  }
+
+  public void setAcceptedChat(Boolean acceptedChat) {
+    this.acceptedChat = acceptedChat;
+  }
+}
+
 public class AsyncChatServer {
   private AsynchronousServerSocketChannel serverChannel;
 //  private AsynchronousSocketChannel clientChannel;
-  private HashMap<String, AsynchronousSocketChannel> clientChannels = new HashMap<>();
+  private HashMap<String, Object> clientChannels = new HashMap<>();
   private static Integer clientsIndex = 0;
 
   public void ListenForBrokers() {
@@ -34,6 +67,11 @@ public class AsyncChatServer {
             ByteBuffer clientInput = ByteBuffer.allocate(10);
             String targetClientID;
             AsynchronousSocketChannel targetClient;
+            String welcomeMessage;
+            ByteBuffer buffer = ByteBuffer.allocate(32);
+            Map<String, Object> readInfo = new HashMap<>();
+            ClientReference newClientRef;
+
             if (serverChannel.isOpen()) {
               // So this here to open another async listener for more clients
               // in the background, 'this' refers to the completion handler.
@@ -41,13 +79,10 @@ public class AsyncChatServer {
             }
             if ((newClient != null) && (newClient.isOpen())) {
               newClientID = Integer.toString(clientsIndex);
-              clientChannels.put(newClientID, newClient);
+              newClientRef = new ClientReference(newClientID, newClient, false);
+              clientChannels.put(newClientID, newClientRef);
               System.out.println("Client Channels dump: " + clientChannels.entrySet());
               clientsIndex++;
-              ReadWriteHandler handler = new ReadWriteHandler(newClientID);
-              ByteBuffer buffer = ByteBuffer.allocate(32);
-              Map<String, Object> readInfo = new HashMap<>();
-              readInfo.put("action", "read");
               readInfo.put("buffer", buffer);
               // So the get() calls on these overloaded write() and read()'s block,
               // they will only return once they're done but they need
@@ -55,18 +90,31 @@ public class AsyncChatServer {
               // need to know which target client the current client wants
               // to communicate with.
               try {
-                newClient.write(ByteBuffer.wrap(newClientID.getBytes())).get();
+                welcomeMessage = "Welcome to the chat server, your ID is: "
+                        + newClientID
+                        + "\nPlease type the ID of the client you want to chat to:\n";
+                newClient.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
                 newClient.read(clientInput).get();
                 targetClientID = new String(clientInput.array());
                 targetClientID = targetClientID.trim();
-                targetClient = clientChannels.get(targetClientID);
+                ClientReference targetClientObject;
+                targetClientObject = (ClientReference) clientChannels.get(targetClientID);
                 System.out.println("The clients input: " + targetClientID + "#");
+                targetClient = targetClientObject.getClient();
+                newClientRef.setAcceptedChat(true);
+                readInfo.put("targetClient", targetClientObject);
+                readInfo.put("currentClient", newClientRef);
                 if (targetClient != null) {
-                  readInfo.put("targetClient", targetClient);
+//                  readInfo.put("targetClient", targetClient);
+                  ReadWriteHandler handler = new ReadWriteHandler(newClient, targetClient);
                   handler.currentClient.read(buffer, readInfo, handler);
                 }
                 else {
+                  String failMessage = "Unfortunately the ID: #"
+                          + targetClientID
+                          + " doens't seem to be active, please reconnect.";
                   System.out.println("Error: The server couldn't find the target client ID.");
+                  newClient.write(ByteBuffer.wrap(failMessage.getBytes())).get();
                 }
               } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -101,19 +149,26 @@ public class AsyncChatServer {
 
   class ReadWriteHandler implements CompletionHandler<Integer, Map<String, Object>> {
     AsynchronousSocketChannel currentClient;
-    String currentClientID;
+    AsynchronousSocketChannel targetClient;
 
-    ReadWriteHandler(String clientID) {
-      this.currentClientID = clientID;
-      this.currentClient = clientChannels.get(clientID);
+    ReadWriteHandler(
+            AsynchronousSocketChannel currentClient,
+            AsynchronousSocketChannel targetClient
+    ) {
+      this.currentClient = currentClient;
+      this.targetClient = targetClient;
     }
 
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
-      System.out.println("RW handler started");
-      Map<String, Object> actionInfo = attachment;
-      AsynchronousSocketChannel targetClient = (AsynchronousSocketChannel) attachment.get("targetClient");
-      ByteBuffer messageToTarget = (ByteBuffer) actionInfo.get("buffer");
+      System.out.println("RW handler started: " + Thread.currentThread().getName());
+      ByteBuffer bufferToTarget = (ByteBuffer) attachment.get("buffer");
+//      ByteBuffer freshBuffer
+      ClientReference targetClientRef = (ClientReference) attachment.get("targetClient");
+      ClientReference currentClientRef = (ClientReference) attachment.get("currentClient");
+      System.out.println(targetClientRef.hasAcceptedChat());
+      String formattedMessage;
+
       try {
         System.out.println("Trying to connect to: " + targetClient.getRemoteAddress().toString() +
                 " from " + currentClient.getRemoteAddress().toString());
@@ -121,10 +176,32 @@ public class AsyncChatServer {
         e.printStackTrace();
       }
       try {
-        String debug = new String(messageToTarget.array());
-        System.out.println(debug);
-        messageToTarget.flip();
-        targetClient.write(messageToTarget).get();
+        String message = new String(bufferToTarget.array());
+        System.out.println(message);
+
+        if (!targetClientRef.hasAcceptedChat()) {
+          formattedMessage = "client #"
+                  + currentClientRef.getID()
+                  + ": " + message
+                  + "To reply to this message type the clients ID #:\n";
+        }
+        else {
+          formattedMessage = "client #"
+                  + currentClientRef.getID()
+                  +  ": " + message;
+        }
+        // flip() just sets the seek() position to zero
+        bufferToTarget.flip();
+        targetClient.write(ByteBuffer.wrap(formattedMessage.getBytes())).get();
+        // This whole process here sets the bytes to zero,
+        // clear() just sets the position to zero, it doesn't actually "clear"
+        // the buffer, feels a bit hacky. I wonder if allocating a new buffer isn't
+        // better?
+        bufferToTarget.clear();
+        bufferToTarget.put(new byte[32]);
+        bufferToTarget.clear();
+        attachment.put("buffer", bufferToTarget);
+        currentClient.read(bufferToTarget, attachment, this);
       } catch (InterruptedException e) {
         e.printStackTrace();
       } catch (ExecutionException e) {
@@ -144,5 +221,6 @@ public class AsyncChatServer {
   public static void main(String[] args) {
     AsyncChatServer server = new AsyncChatServer();
     server.ListenForBrokers();
+    // server.ListenForMarkets();
   }
 }
