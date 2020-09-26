@@ -161,8 +161,9 @@ public class AsyncChatServer {
 
     @Override
     public void completed(Integer result, Map<String, Object> attachment) {
-      System.out.println("RW handler started");
+      System.out.println("RW handler started: " + Thread.currentThread().getName());
       ByteBuffer bufferToTarget = (ByteBuffer) attachment.get("buffer");
+//      ByteBuffer freshBuffer
       ClientReference targetClientRef = (ClientReference) attachment.get("targetClient");
       ClientReference currentClientRef = (ClientReference) attachment.get("currentClient");
       System.out.println(targetClientRef.hasAcceptedChat());
@@ -193,6 +194,8 @@ public class AsyncChatServer {
         bufferToTarget.flip();
         targetClient.write(ByteBuffer.wrap(formattedMessage.getBytes())).get();
         bufferToTarget.clear();
+        bufferToTarget.put(new byte[32]);
+        bufferToTarget.clear();
         attachment.put("buffer", bufferToTarget);
         currentClient.read(bufferToTarget, attachment, this);
       } catch (InterruptedException e) {
@@ -214,5 +217,6 @@ public class AsyncChatServer {
   public static void main(String[] args) {
     AsyncChatServer server = new AsyncChatServer();
     server.ListenForBrokers();
+    // server.ListenForMarkets();
   }
 }
