@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,36 +91,41 @@ public class AsyncEchoServer {
             Map<String, Object> actionInfo = attachment;
             String action = (String) actionInfo.get("action");
             if ("read".equals(action)) {
-                System.out.println("Read from stream is done.");
                 ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
                 // Result from read operation
-                if (result == -1) {
-                    try {
-                        System.out.println("Closing client.");
-                        clientChannel.close();
-                    } catch (IOException e) {
-                        System.out.println("Error in client close().");
-                        e.printStackTrace();
-                    } finally {
-                        return;
-                    }
-                }
-                String fromBuffer = new String(buffer.array());
-                String message = "echo: ";
-                String stringToWrite = message + fromBuffer;
+//                if (result == -1) {
+//                    try {
+//                        System.out.println("Closing client.");
+//                        clientChannel.close();
+//                    } catch (IOException e) {
+//                        System.out.println("Error in client close().");
+//                        e.printStackTrace();
+//                    } finally {
+//                        return;
+//                    }
+//                }
+//                String fromBuffer = new String(buffer.array());
+//                String message = "echo: ";
+//                String stringToWrite = message + fromBuffer;
                 buffer.flip();
                 actionInfo.put("action", "write");
-                clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
+//                System.out.println(":::DEBUG::: Buffer Before writing to stream -> " + Arrays.toString(buffer.array()));
+//                System.out.println(":::DEBUG::: User input in bytes converted to array -> " + Arrays.toString(stringToWrite.getBytes()));
+//                System.out.println(":::DEBUG::: User input in bytes converted to ByteBufferWrapper -> " + Arrays.toString(ByteBuffer.wrap(stringToWrite.getBytes()).array()));
+//                clientChannel.write(ByteBuffer.wrap(stringToWrite.getBytes()), actionInfo, this);
+                clientChannel.write(buffer, actionInfo, this);
                 buffer.clear();
+                System.out.println(":::DEBUG::: Read from stream is done.");
             } else if ("write".equals(action)) {
-                System.out.println("Writing to stream is done");
                 ByteBuffer buffer = ByteBuffer.allocate(32);
                 actionInfo.put("action", "read");
                 actionInfo.put("buffer", buffer);
                 clientChannel.read(buffer, actionInfo, this);
+                System.out.println(":::DEBUG::: Writing to stream is done");
             } else {
                 System.out.println("***************End of the RW Handler*************************");
             }
+
             if (clientChannel.isOpen()) {
                 System.out.println("<<<<<<<<<<<<<<<<<<<<<<<Client socket is open >>>>>>>>>>>>>>>>>>>>>>");
             } else {

@@ -61,19 +61,23 @@ public class AsyncEchoClient {
     public static String sendMessage(String message) throws ExecutionException, InterruptedException {
         byte[] byteMsg = message.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(byteMsg);
+        System.out.println(":::DEBUG::: buffer before write -> " + Arrays.toString(buffer.array()));
         Future<Integer> writeResult = clientChannel.write(buffer);
 
         // do some computation
-        System.out.println(":::DEBUG::: Do some computation on writeResults");
+//        System.out.println(":::DEBUG::: Do some computation on writeResults");
 
         writeResult.get();
+//        System.out.println(":::DEBUG::: buffer after write -> " + Arrays.toString(buffer.array()));
         buffer.flip();
+//        System.out.println(":::DEBUG::: Do some computation on readResults");
         Future<Integer> readResult = clientChannel.read(buffer);
 
         // do some computation
-        System.out.println(":::DEBUG::: Do some computation on readResults");
 
+//        System.out.println(":::DEBUG::: buffer before read -> " + Arrays.toString(buffer.array()));
         readResult.get();
+//        System.out.println(":::DEBUG::: buffer after read -> " + Arrays.toString(buffer.array()));
         String echo = new String(buffer.array()).trim();
         buffer.clear();
         return echo;
