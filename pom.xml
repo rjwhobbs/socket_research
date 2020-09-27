@@ -22,6 +22,7 @@
     <module>async-echo-server-zero</module>
     <module>async-chat-server-zero</module>
     <module>async-echo-client-zero</module>
+    <module>async-chat-client-zero</module>
   </modules>
 
   <name>do_you_even_socket</name>

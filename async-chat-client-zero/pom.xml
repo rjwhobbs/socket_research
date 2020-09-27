@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>async-echo-client-zero</artifactId>
+    <artifactId>async-chat-client-zero</artifactId>
 
 
     <build>
@@ -39,12 +39,12 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
-                    <finalName>async-echo-client-zero</finalName>
+                    <finalName>async-chat-client-zero</finalName>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>research.AsyncEchoClient</mainClass>
+                            <mainClass>research.AsyncChatClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
