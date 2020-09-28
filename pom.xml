@@ -9,19 +9,19 @@
   <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
   <modules>
-    <module>client</module>
-    <module>serverzero</module>
-    <module>echo-client</module>
-    <module>echo-server-zero</module>
-    <module>multi-knock-knock-server</module>
-    <module>knock-knock-server</module>
-    <module>knock-knock-client</module>
-    <module>chat-server</module>
-    <module>chat-client</module>
-    <module>NIO-server</module>
-    <module>async-echo-server-zero</module>
-    <module>async-chat-server-zero</module>
-    <module>async-echo-client-zero</module>
+<!--    <module>client</module>-->
+<!--    <module>serverzero</module>-->
+<!--    <module>echo-client</module>-->
+<!--    <module>echo-server-zero</module>-->
+<!--    <module>multi-knock-knock-server</module>-->
+<!--    <module>knock-knock-server</module>-->
+<!--    <module>knock-knock-client</module>-->
+<!--    <module>chat-server</module>-->
+<!--    <module>chat-client</module>-->
+<!--    <module>NIO-server</module>-->
+<!--    <module>async-echo-server-zero</module>-->
+<!--    <module>async-chat-server-zero</module>-->
+<!--    <module>async-echo-client-zero</module>-->
     <module>async-chat-client-zero</module>
   </modules>
 

@@ -6,13 +6,18 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class AsyncChatClient {
   private AsynchronousSocketChannel client;
   private Future<Void> future;
   private static AsyncChatClient instance;
+  private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
   private AsyncChatClient() {
     try {
@@ -47,6 +52,37 @@ public class AsyncChatClient {
     return new String(buffer.array());
   }
 
+  public void writeHandler() throws ExecutionException, InterruptedException {
+    String input = getNextLine();
+    client.write(ByteBuffer.wrap(input.getBytes())).get();
+  }
+
+  String getNextLine() {
+    String line;
+    try {
+      line = reader.readLine();
+      if (line == null) {
+        return "EXIT";
+      }
+      return line;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      return "EXIT";
+    }
+  }
+//  class ReadHandler implements CompletionHandler<Integer, Map<String, Object>> {
+//    @Override
+//    public void completed(Integer result, Map<String, Object> attachment) {
+//
+//    }
+//
+//    @Override
+//    public void failed(Throwable exc, Map<String, Object> attachment) {
+//
+//    }
+//  }
+
   public void stop() {
     try {
       client.close();
@@ -56,16 +92,41 @@ public class AsyncChatClient {
   }
 
   public static void main(String[] args) throws Exception {
-    AsyncChatClient client = AsyncChatClient.getInstance();
+    final AsyncChatClient client = AsyncChatClient.getInstance();
     client.start();
-//    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-//    String line;
-//    System.out.println("Message to server:");
-    // If the server shuts down this goes on an infinite loop, not that isn't already.
-    while (true) {
-      String response = client.readHandler();
-      System.out.println("response from server: " + response);
+    Executor pool = Executors.newFixedThreadPool(2);
+    pool.execute(new Runnable() {
+      @Override
+      public void run() {
+        while (true) {
+          String response = null;
+          try {
+            response = client.readHandler();
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+          System.out.println("response from server: " + response);
 //      System.out.println("Message to server:");
     }
+      }
+    });
+    pool.execute(new Runnable() {
+      @Override
+      public void run() {
+        while (true) {
+          try {
+            client.writeHandler();
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    });
+
+
   }
 }
