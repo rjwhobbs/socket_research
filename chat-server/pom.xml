@@ -60,7 +60,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>pmalope.ChatServer</mainClass>
+                            <mainClass>pmalope.AsyncChatServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
