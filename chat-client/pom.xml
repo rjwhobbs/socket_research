@@ -44,7 +44,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>pmalope.AsyncEchoClient</mainClass>
+                            <mainClass>pmalope.AsyncChatClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
