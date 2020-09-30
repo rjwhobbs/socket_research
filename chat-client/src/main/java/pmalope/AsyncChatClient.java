@@ -16,7 +16,7 @@ import java.util.concurrent.Future;
  *
  * Reference:
  *
- * @author  Phetho Malope Malope
+ * @author  Phetho Malope Malope & Roger Hobbs
  * @since   2020-09-28
  * @version 1.0
  */
@@ -27,94 +27,82 @@ import java.util.concurrent.Future;
  * 1. Add debugger
  * */
 public class AsyncChatClient {
-    private static AsynchronousSocketChannel clientChannel;
-    private static final int PORT = 5000;
-    private static final String HOST = "localhost";
+    private AsynchronousSocketChannel client;
+    private Future<Void> future;
+    private static AsyncChatClient instance;
+    private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String[] args) throws IOException {
-        AsyncChatClient chatClient = new AsyncChatClient();
-        chatClient.start();
-    }
-
-    private void start() {
-        Scanner scanner = new Scanner(System.in);
-        /*
-         * An asynchronous channel for stream-oriented connecting sockets.
-         * */
+    private AsyncChatClient() {
         try {
-            clientChannel = AsynchronousSocketChannel.open();
-            InetSocketAddress hostAddress = new InetSocketAddress(HOST, PORT);
-            /*
-             * Establish connection
-             * */
-            Future<Void> results = clientChannel.connect(hostAddress);
-            /*
-             * Await connection
-             * */
-            results.get();
+            client = AsynchronousSocketChannel.open();
+            InetSocketAddress hostAddress = new InetSocketAddress("localhost", 5000);
+            future = client.connect(hostAddress);
+            start();
 
-            System.out.println(":::DEBUG::: connected to server - " + clientChannel.getRemoteAddress());
-            System.out.println("Are you ready to start a conversation? (y)es or (n)o");
-            while (scanner.hasNextLine()) {
-                String input = scanner.nextLine().trim();
-                if (input.isEmpty()) {
-                    System.out.println(":::ERROR::: invalid input, please choose (y)es or (n)o");
-                }
-                else if (input.toLowerCase().equals("no") || input.toLowerCase().equals("n")) {
-                    System.out.println("Thank you for trying");
-                    System.exit(-1);
-                } else if (input.toLowerCase().equals("yes") || input.toLowerCase().equals("y")) {
-                    readWriteHandler();
-//                    String response = sendMessage(input);
-//                    System.out.println(":::DEBUG::: Response from server");
-//                    System.out.println(response);
-                } else {
-                    System.out.println(":::ERROR::: invalid input, please choose (y)es or (n)o");
-                }
-//                System.out.println(input);
-            }
-        } catch (InterruptedException | ExecutionException | IOException e) {
-//            e.printStackTrace();
-            System.out.println(e.getMessage());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public static void readWriteHandler() throws ExecutionException, InterruptedException {
-//        byte[] byteMsg = message.getBytes();
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-//        System.out.println(":::DEBUG::: read handler -> " + Arrays.toString(buffer.array()));
-        Future<Integer> writeResult = clientChannel.write(buffer);
-
-        // do some computation
-//        System.out.println(":::DEBUG::: Do some computation on writeResults");
-
-        writeResult.get();
-//        System.out.println(":::DEBUG::: buffer after write -> " + Arrays.toString(buffer.array()));
-        buffer.flip();
-//        System.out.println(":::DEBUG::: Do some computation on readResults");
-        Future<Integer> readResult = clientChannel.read(buffer);
-
-        // do some computation
-
-//        System.out.println(":::DEBUG::: buffer before read -> " + Arrays.toString(buffer.array()));
-        readResult.get();
-//        System.out.println(":::DEBUG::: buffer after read -> " + Arrays.toString(buffer.array()));
-//        String echo = new String(buffer.array()).trim();
-        System.out.println(new String(buffer.array()));
-        buffer.clear();
-//        return echo;
+    public static AsyncChatClient getInstance() {
+        if (instance == null)
+            instance = new AsyncChatClient();
+        return instance;
     }
 
-    public String sendMessage(String message) throws ExecutionException, InterruptedException {
-        byte[] byteMsg = message.getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(byteMsg);
-        Future<Integer> writeResult = clientChannel.write(buffer);
+    private void start() {
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
 
-        // do some computation
-
-        writeResult.get();
+    public String readHandler() throws ExecutionException, InterruptedException {
+        ByteBuffer buffer = ByteBuffer.allocate(512);
+        client.read(buffer).get();
         buffer.flip();
-        Future<Integer> readResult = clientChannel.read(buffer);
+        return new String(buffer.array());
+    }
+
+    public void writeHandler() throws ExecutionException, InterruptedException {
+        String input = getNextLine();
+        client.write(ByteBuffer.wrap(input.getBytes())).get();
+    }
+
+    String getNextLine() {
+        String line;
+        try {
+            line = reader.readLine();
+            if (line == null) {
+                return "EXIT";
+            }
+            return line;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return "EXIT";
+        }
+    }
+//  class ReadHandler implements CompletionHandler<Integer, Map<String, Object>> {
+//    @Override
+//    public void completed(Integer result, Map<String, Object> attachment) {
+//
+//    }
+//
+//    @Override
+//    public void failed(Throwable exc, Map<String, Object> attachment) {
+//
+//    }
+//  }
+
+    public void stop() {
+        try {
+            client.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         final AsyncChatClient client = AsyncChatClient.getInstance();
