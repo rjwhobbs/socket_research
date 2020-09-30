@@ -75,16 +75,13 @@ public class AsyncChatServer {
                     @SneakyThrows
                     @Override
                     public void completed(AsynchronousSocketChannel result, Object attachment) {
-                        System.out.println(":::DEBUG::: Client connected");
-                        System.out.println(":::DEBUG::: Accept call back initiated");
-                        String newClientID;
-                        String targetClientID;
-                        String welcomeMessage;
-                        ByteBuffer clientInput = ByteBuffer.allocate(10);
-//                        ByteBuffer buffer = ByteBuffer.allocate(32);
-                        Map<String, Object> readInfo = new HashMap<>();
-                        ClientReference client;
-                        AsynchronousSocketChannel targetClient;
+                        debug.info("Client " + result.getRemoteAddress() + " connected");
+                        String availableClientsMessage = "";
+                        clientBuffer = ByteBuffer.allocate(10);
+                        buffer = ByteBuffer.allocate(1024);
+                        clientTable = new HashMap<>();
+                        readInfo = new HashMap<>();
+                        clientChannel = result;
 
                         if (serverChannel.isOpen()) {
                             // So this here to open another async listener for more clients
