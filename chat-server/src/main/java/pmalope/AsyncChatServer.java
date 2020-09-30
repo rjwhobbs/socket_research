@@ -88,21 +88,29 @@ public class AsyncChatServer {
                             // in the background, 'this' refers to the completion handler.
                             serverChannel.accept(null, this);
                         }
-                        clientChannel = result;
-                        if ((clientChannel != null) && (clientChannel.isOpen())) {
-                            ReadWriteHandler handler = new ReadWriteHandler(result);
-                            ByteBuffer buffer = ByteBuffer.allocate(1024);
-//
-//                            ByteBuffer buffer = ByteBuffer.wrap("Testing".getBytes());
 
-                            readInfo.put("action", "read");
-                            readInfo.put("buffer", buffer);
-//
-                            handler.currentClient.read(buffer, readInfo, handler);
+                        if (clientChannel != null && clientChannel.isOpen()) {
+                            try {
+                                client = new ClientReference(clientChannel, false);
+                                clientTable.put(++ID, client);
+                                clientsDump();
+
+                                welcomeMessage = getWelcomeMessage();
+                                availableClientsMessage = getClients();
+
+                                clientChannel.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
+                                clientChannel.write(ByteBuffer.wrap(availableClientsMessage.getBytes())).get();
+
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                            }
+
+
+//                            readInfo.put("buffer", buffer);
+//                            ReadWriteHandler handler = new ReadWriteHandler(result);
+//                            readInfo.put("action", "read");
 //                            clientChannel.read(buffer, readInfo, handler);
                         }
-//                        assert clientChannel != null;
-//                        clientChannel.close();
                     }
 
                     @Override
@@ -110,8 +118,8 @@ public class AsyncChatServer {
 
                     }
                 });
-                System.out.println("Waiting for connection on port " + PORT);
-                System.out.println(":::DEBUG::: Outside the accept callback");
+                debug.info("Running on " + Thread.currentThread().getName());
+                debug.info("Waiting for connection on port " + PORT);
                 System.in.read();
             }
         } catch (IOException e) {
