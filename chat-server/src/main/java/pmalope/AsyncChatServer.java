@@ -207,28 +207,22 @@ public class AsyncChatServer {
 }
 
 class ClientReference {
-    private String ID;
-    private AsynchronousSocketChannel client;
+    private static int clientID = 0;
+    private final AsynchronousSocketChannel clientChannel;
     private Boolean acceptedChat;
 
-    ClientReference() {}
-
-    ClientReference(
-            String ID,
-            AsynchronousSocketChannel client,
-            Boolean acceptedChat
-    ) {
-        this.ID = ID;
-        this.client = client;
+    ClientReference(AsynchronousSocketChannel clientChannel, Boolean acceptedChat) {
+        this.clientChannel = clientChannel;
         this.acceptedChat = acceptedChat;
+        clientID++;
     }
 
-    public String getID() {
-        return ID;
+    public int getClientID() {
+        return clientID;
     }
 
-    public AsynchronousSocketChannel getClient() {
-        return client;
+    public AsynchronousSocketChannel getClientChannel() {
+        return clientChannel;
     }
 
     public Boolean hasAcceptedChat() {
