@@ -116,11 +116,40 @@ public class AsyncChatClient {
         buffer.flip();
         Future<Integer> readResult = clientChannel.read(buffer);
 
-        // do some computation
-
-        readResult.get();
-        String echo = new String(buffer.array()).trim();
-        buffer.clear();
-        return echo;
+    public static void main(String[] args) throws Exception {
+        final AsyncChatClient client = AsyncChatClient.getInstance();
+        client.start();
+        Executor pool = Executors.newFixedThreadPool(2);
+        pool.execute(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    String response = null;
+                    try {
+                        response = client.readHandler();
+                        System.out.println(response);
+                    } catch (ExecutionException | InterruptedException e) {
+                        System.out.println(e.getMessage());
+                        client.stop();
+                        System.exit(-1);
+                    }
+//      System.out.println("Message to server:");
+                }
+            }
+        });
+        pool.execute(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        client.writeHandler();
+                    } catch (ExecutionException | InterruptedException e) {
+                        System.out.println(e.getMessage());
+                        client.stop();
+                        System.exit(-1);
+                    }
+                }
+            }
+        });
     }
 }
