@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 /*
 * TODO
 *
-* 1. Add debugger
-* 2. Establish connection between two clients
+* 1. Establish connection between two clients
+* 2. Expand Client Reference
 * */
 public class AsyncChatServer {
     private static final Logger debug = Logger.getLogger("DEBUG").getParent();
@@ -124,6 +124,10 @@ public class AsyncChatServer {
         }
     }
 
+    /*
+    * TODO
+    * 1. Don't append the current client information
+    * */
     private String getClients() {
 
         for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
@@ -203,6 +207,13 @@ public class AsyncChatServer {
     }
 }
 
+
+/*
+* TODO
+*
+* 1. Add Name
+* 2  Add Age
+* */
 class ClientReference {
     private static int clientID = 0;
     private final AsynchronousSocketChannel clientChannel;
