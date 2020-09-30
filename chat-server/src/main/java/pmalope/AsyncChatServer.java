@@ -172,7 +172,7 @@ public class AsyncChatServer {
         @SneakyThrows
         @Override
         public void completed(Integer result, Map<String, Object> attachment) {
-            System.out.println(":::DEBUG::: Read/Write handler started: " + Thread.currentThread().getName());
+            debug.info("Read/Write handler started on " + Thread.currentThread().getName());
             Map<String, Object> actionInfo = attachment;
             String action = (String) actionInfo.get("action");
 
@@ -187,7 +187,6 @@ public class AsyncChatServer {
 //                buffer.flip();
                 actionInfo.put("action", "write");
                 currentClient.write(buffer, actionInfo, this);
-                System.out.println(buffer.hasRemaining());
                 buffer.clear();
             } else if ("write".equals(action)) {
                 ByteBuffer buffer = ByteBuffer.allocate(32);
@@ -201,8 +200,8 @@ public class AsyncChatServer {
 
         @Override
         public void failed(Throwable exc, Map<String, Object> attachment) {
-            System.out.println("ReadWriteHandler failed() method call:");
-            System.out.println(exc.getMessage());
+            debug.warning("Read/Write handler started on " + Thread.currentThread().getName());
+            debug.warning(exc.getMessage());
         }
     }
 }
