@@ -10,6 +10,21 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * NIO Socket Chat Client
+ *
+ * Reference:
+ *
+ * @author  Phetho Malope Malope
+ * @since   2020-09-28
+ * @version 1.0
+ */
+
+/*
+ * TODO
+ *
+ * 1. Add debugger
+ * */
 public class AsyncChatClient {
     private static AsynchronousSocketChannel clientChannel;
     private static final int PORT = 5000;
@@ -27,7 +42,7 @@ public class AsyncChatClient {
          * */
         try {
             clientChannel = AsynchronousSocketChannel.open();
-            InetSocketAddress hostAddress = new InetSocketAddress("localhost", PORT);
+            InetSocketAddress hostAddress = new InetSocketAddress(HOST, PORT);
             /*
              * Establish connection
              * */
