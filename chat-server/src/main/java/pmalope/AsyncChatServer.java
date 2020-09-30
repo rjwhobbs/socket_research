@@ -34,11 +34,31 @@ import java.util.concurrent.Future;
 * 2. Establish connection between two clients
 * */
 public class AsyncChatServer {
+    private static final Logger debug = Logger.getLogger("DEBUG").getParent();
     private AsynchronousServerSocketChannel serverChannel;
     private AsynchronousSocketChannel clientChannel;
+    private AsynchronousSocketChannel targetChannel;
+
+    private ClientReference client;
+
+    private static int ID = 0;
+
+    //    private List<ClientReference> clientList;
+    private HashMap<Integer, ClientReference> clientTable;
+    private Map<String, Object> readInfo;
+
+    private static final StringBuilder availableClients = new StringBuilder();
+
     private static final int PORT = 5000;
-    private HashMap<String, ClientReference> clients = new HashMap<>();
     private static Integer clientsIndex = 0;
+
+    private String clientID;
+    private String targetClientID;
+    private String welcomeMessage;
+
+    private ByteBuffer clientBuffer;
+    private ByteBuffer buffer;
+
 
     public static void main(String[] args) throws IOException {
         AsyncChatServer server = new AsyncChatServer();
