@@ -99,7 +99,7 @@ public class AsyncChatClient {
         readResult.get();
 //        System.out.println(":::DEBUG::: buffer after read -> " + Arrays.toString(buffer.array()));
 //        String echo = new String(buffer.array()).trim();
-        System.out.println(":::DEBUG::: " + new String(buffer.array()));
+        System.out.println(new String(buffer.array()));
         buffer.clear();
 //        return echo;
     }
