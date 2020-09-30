@@ -98,6 +98,10 @@ public class AsyncChatServer {
                                 clientChannel.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
                                 clientChannel.write(ByteBuffer.wrap(availableClientsMessage.getBytes())).get();
 
+                                clientChannel.read(clientBuffer).get();
+                                clientBuffer.flip(); //
+                                debug.info("User input " + Arrays.toString(clientBuffer.array()));
+
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
                             }
