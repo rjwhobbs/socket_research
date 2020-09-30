@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,9 +18,7 @@ import java.util.logging.Logger;
 /**
  * NIO Socket Chat Server
  *
- * Reference:
- *
- * @author  Phetho Malope Malope
+ * @author  Phetho Malope & Roger Hobbs
  * @since   2020-09-28
  * @version 1.0
  */
@@ -29,6 +28,7 @@ import java.util.logging.Logger;
 *
 * 1. Establish connection between two clients
 * 2. Expand Client Reference
+* 3. Implement Protocol
 * */
 public class AsyncChatServer {
     private static final Logger debug = Logger.getLogger("DEBUG").getParent();
