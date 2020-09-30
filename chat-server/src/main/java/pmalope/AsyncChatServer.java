@@ -14,6 +14,23 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+
+/**
+ * NIO Socket Chat Server
+ *
+ * Reference:
+ *
+ * @author  Phetho Malope Malope
+ * @since   2020-09-28
+ * @version 1.0
+ */
+
+/*
+* TODO
+*
+* 1. Add debugger
+* 2. Establish connection between two clients
+* */
 public class AsyncChatServer {
     private AsynchronousServerSocketChannel serverChannel;
     private AsynchronousSocketChannel clientChannel;
@@ -119,7 +136,7 @@ public class AsyncChatServer {
             if ("read".equals(action)) {
 //                ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
 //                System.out.println("Message from client " + new String(buffer.array()));
-                String response = "Hello " + clientChannel.getRemoteAddress() + " This is " + clientChannel.getLocalAddress() + "\r\n";
+                String response = "Hello " + clientChannel.getRemoteAddress() + " this is " + clientChannel.getLocalAddress() + "\r\n";
 
                 byte[] data = response.getBytes("UTF-8");
                 ByteBuffer buffer = ByteBuffer.wrap(data);
