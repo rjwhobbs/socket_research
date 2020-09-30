@@ -37,6 +37,7 @@ public class AsyncChatServer {
     private AsynchronousSocketChannel targetChannel;
 
     private ClientReference client;
+    private ClientReference targetClient;
 
     private static int ID = 0;
 
@@ -50,7 +51,7 @@ public class AsyncChatServer {
     private static Integer clientsIndex = 0;
 
     private String clientID;
-    private String targetClientID;
+    private int targetClientID;
     private String welcomeMessage;
 
     private ByteBuffer clientBuffer;
@@ -100,7 +101,13 @@ public class AsyncChatServer {
 
                                 clientChannel.read(clientBuffer).get();
                                 clientBuffer.flip(); //
-                                debug.info("User input " + Arrays.toString(clientBuffer.array()));
+                                targetClientID = Integer.parseInt(new String(clientBuffer.array()).trim());
+                                debug.info("User input -> " + targetClientID);
+
+
+                                targetClient = clientTable.get(targetClientID);
+                                client.setAcceptedChat(true);
+
 
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
@@ -124,7 +131,7 @@ public class AsyncChatServer {
                 System.in.read();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("ERROR: " + e.getMessage());
         }
     }
 
