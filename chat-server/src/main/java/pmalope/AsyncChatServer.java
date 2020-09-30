@@ -127,6 +127,23 @@ public class AsyncChatServer {
         }
     }
 
+    private String getClients() {
+
+        for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
+//            if (ID != entry.getValue().getClientID()) {
+                availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
+                        entry.getValue().getClientID(), entry.getValue().getClientChannel()));
+//            }
+        }
+        return availableClients.toString();
+    }
+
+    private String getWelcomeMessage() {
+        welcomeMessage = "Welcome to the chat server, your ID is: " + ID
+                + "\nPlease type the ID of the client you want to chat to:\n";
+        return welcomeMessage;
+    }
+
     public void clientsDump() {
         for (Map.Entry<String, ClientReference> entry : clients.entrySet()) {
             System.out.println(entry.getKey());
