@@ -145,11 +145,10 @@ public class AsyncChatServer {
     }
 
     public void clientsDump() {
-        for (Map.Entry<String, ClientReference> entry : clients.entrySet()) {
-            System.out.println(entry.getKey());
-            System.out.println("Client ID > " + entry.getValue().getID());
-            System.out.println("Client Channel > " + entry.getValue().getClient());
-            System.out.println(">>>>End<<<<");
+        for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
+            String dumpMsg = String.format("\n>>>Dump<<<\nClient ID: %s\nClient Channel: %s\n",
+                    entry.getValue().getClientID(), entry.getValue().getClientChannel());
+            debug.info(dumpMsg);
         }
     }
 
