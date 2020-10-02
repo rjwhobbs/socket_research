@@ -26,10 +26,13 @@ import java.util.logging.Logger;
 /*
 * TODO
 *
-* 1. Establish connection between two clients
-* 2. Expand Client Reference
-* 3. Implement Protocol
-* */
+* 1. Send back a list of available clients excluding the client that is requesting the list
+*   - if no client availabe display appropriate message
+* 2. Prompt the client for valid ID
+* 3. if no clients are available then client should have option to refresh the list.
+* 4. Establish connection between two clients
+
+ * */
 public class AsyncChatServer {
     private static final Logger debug = Logger.getLogger("DEBUG").getParent();
     private AsynchronousServerSocketChannel serverChannel;
@@ -45,15 +48,13 @@ public class AsyncChatServer {
     private HashMap<Integer, ClientReference> clientTable;
     private Map<String, Object> readInfo;
 
+    //TODO this should be local variables
     private static final StringBuilder availableClients = new StringBuilder();
-
     private static final int PORT = 5000;
     private static Integer clientsIndex = 0;
-
     private String clientID;
     private int targetClientID;
     private String welcomeMessage;
-
     private ByteBuffer clientBuffer;
     private ByteBuffer buffer;
 
@@ -104,10 +105,15 @@ public class AsyncChatServer {
                                 targetClientID = Integer.parseInt(new String(clientBuffer.array()).trim());
                                 debug.info("User input -> " + targetClientID);
 
-
                                 targetClient = clientTable.get(targetClientID);
-                                client.setAcceptedChat(true);
-
+                                //TODO validation
+                                // if  the client doesn't exist then show appropriate message
+                                if (targetClient == null) {
+                                    System.out.println("Client doesn't exist");
+                                } else {
+                                    System.out.println("Request sent...");
+                                    client.setAcceptedChat(true);
+                                }
 
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
@@ -152,7 +158,7 @@ public class AsyncChatServer {
 
     private String getWelcomeMessage() {
         welcomeMessage = "Welcome to the chat server, your ID is: " + ID
-                + "\nPlease type the ID of the client you want to chat to:\n";
+                + "\nPlease type the ID of the client you want to chat to: ";
         return welcomeMessage;
     }
 
