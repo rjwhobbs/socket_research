@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 * 2. Prompt the client for valid ID
 * 3. if no clients are available then client should have option to refresh the list.
 * 4. Establish connection between two clients
+* 5. Use List instead of HashMap
 
  * */
 public class AsyncChatServer {
@@ -65,16 +66,14 @@ public class AsyncChatServer {
         // server.ListenForMarkets();
     }
 
-    public void listenForClient() throws IOException {
+    public void listenForClient() {
         try (AsynchronousServerSocketChannel serverChannel = AsynchronousServerSocketChannel.open()){
             InetSocketAddress hostAddress = new InetSocketAddress("localhost", PORT);
             serverChannel.bind(hostAddress);
             while (true) {
                 serverChannel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
-                    @SneakyThrows
                     @Override
                     public void completed(AsynchronousSocketChannel result, Object attachment) {
-                        debug.info("Client " + result.getRemoteAddress() + " connected");
                         String availableClientsMessage = "";
                         clientBuffer = ByteBuffer.allocate(10);
                         buffer = ByteBuffer.allocate(1024);
@@ -90,6 +89,8 @@ public class AsyncChatServer {
 
                         if (clientChannel != null && clientChannel.isOpen()) {
                             try {
+                                debug.info("Client " + result.getRemoteAddress() + " connected");
+
                                 client = new ClientReference(clientChannel, false);
                                 clientTable.put(++ID, client);
                                 clientsDump();
@@ -106,8 +107,7 @@ public class AsyncChatServer {
                                 debug.info("User input -> " + targetClientID);
 
                                 targetClient = clientTable.get(targetClientID);
-                                //TODO validation
-                                // if  the client doesn't exist then show appropriate message
+
                                 if (targetClient == null) {
                                     System.out.println("Client doesn't exist");
                                 } else {
@@ -148,10 +148,11 @@ public class AsyncChatServer {
     private String getClients() {
 
         for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
-//            if (ID != entry.getValue().getClientID()) {
-                availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
+            if (ID != entry.getValue().getClientID()) {
+                System.out.println("test 1");
+            }
+            availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
                         entry.getValue().getClientID(), entry.getValue().getClientChannel()));
-//            }
         }
         return availableClients.toString();
     }
@@ -187,32 +188,35 @@ public class AsyncChatServer {
             this.targetClient = targetClient;
         }
 
-        @SneakyThrows
         @Override
         public void completed(Integer result, Map<String, Object> attachment) {
             debug.info("Read/Write handler started on " + Thread.currentThread().getName());
             Map<String, Object> actionInfo = attachment;
             String action = (String) actionInfo.get("action");
 
-            if ("read".equals(action)) {
+            try {
+                if ("read".equals(action)) {
 //                ByteBuffer buffer = (ByteBuffer) actionInfo.get("buffer");
 //                System.out.println("Message from client " + new String(buffer.array()));
-                String response = "Hello " + clientChannel.getRemoteAddress() + " this is " + clientChannel.getLocalAddress() + "\r\n";
+                    String response = "Hello " + clientChannel.getRemoteAddress() + " this is " + clientChannel.getLocalAddress() + "\r\n";
 
-                byte[] data = response.getBytes("UTF-8");
-                ByteBuffer buffer = ByteBuffer.wrap(data);
+                    byte[] data = response.getBytes("UTF-8");
+                    ByteBuffer buffer = ByteBuffer.wrap(data);
 
 //                buffer.flip();
-                actionInfo.put("action", "write");
-                currentClient.write(buffer, actionInfo, this);
-                buffer.clear();
-            } else if ("write".equals(action)) {
-                ByteBuffer buffer = ByteBuffer.allocate(32);
+                    actionInfo.put("action", "write");
+                    currentClient.write(buffer, actionInfo, this);
+                    buffer.clear();
+                } else if ("write".equals(action)) {
+                    ByteBuffer buffer = ByteBuffer.allocate(32);
 
-                actionInfo.put("action", "read");
-                actionInfo.put("buffer", buffer);
+                    actionInfo.put("action", "read");
+                    actionInfo.put("buffer", buffer);
 
-                currentClient.read(buffer, actionInfo, this);
+                    currentClient.read(buffer, actionInfo, this);
+                }
+            } catch (Exception e) {
+                System.err.println("ERROR: " + e.getMessage());
             }
         }
 
