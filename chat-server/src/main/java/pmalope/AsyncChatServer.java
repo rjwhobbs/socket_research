@@ -1,8 +1,5 @@
 package pmalope;
 
-import lombok.SneakyThrows;
-
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -26,8 +23,6 @@ import java.util.logging.Logger;
 /*
 * TODO
 *
-* 1. Send back a list of available clients excluding the client that is requesting the list
-*   - if no client availabe display appropriate message
 * 2. Prompt the client for valid ID
 * 3. if no clients are available then client should have option to refresh the list.
 * 4. Establish connection between two clients
@@ -74,7 +69,7 @@ public class AsyncChatServer {
                 serverChannel.accept(null, new CompletionHandler<AsynchronousSocketChannel, Object>() {
                     @Override
                     public void completed(AsynchronousSocketChannel result, Object attachment) {
-                        String availableClientsMessage = "";
+                        String availableClients = "";
                         clientBuffer = ByteBuffer.allocate(10);
                         buffer = ByteBuffer.allocate(1024);
                         clientTable = new HashMap<>();
@@ -96,10 +91,14 @@ public class AsyncChatServer {
                                 clientsDump();
 
                                 welcomeMessage = getWelcomeMessage();
-                                availableClientsMessage = getClients();
-
-                                clientChannel.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
-                                clientChannel.write(ByteBuffer.wrap(availableClientsMessage.getBytes())).get();
+                                availableClients = getClients();
+                                if (availableClients.isEmpty()) {
+                                    clientChannel.write(ByteBuffer.wrap("No available clients...\n".getBytes())).get();
+                                    //TODO client must have the ability to refresh connection to the server
+                                } else {
+                                    clientChannel.write(ByteBuffer.wrap(welcomeMessage.getBytes())).get();
+                                    clientChannel.write(ByteBuffer.wrap(availableClients.getBytes())).get();
+                                }
 
                                 clientChannel.read(clientBuffer).get();
                                 clientBuffer.flip(); //
@@ -141,6 +140,14 @@ public class AsyncChatServer {
         }
     }
 
+    public void stop() {
+        try {
+            clientChannel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /*
     * TODO
     * 1. Don't append the current client information
@@ -149,10 +156,9 @@ public class AsyncChatServer {
 
         for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
             if (ID != entry.getValue().getClientID()) {
-                System.out.println("test 1");
-            }
-            availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
+                availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
                         entry.getValue().getClientID(), entry.getValue().getClientChannel()));
+            }
         }
         return availableClients.toString();
     }
