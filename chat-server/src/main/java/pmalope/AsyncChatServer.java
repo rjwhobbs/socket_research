@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -27,7 +26,6 @@ import java.util.logging.Logger;
 * 3. if no clients are available then client should have option to refresh the list.
 * 4. Establish connection between two clients
 * 5. Use List instead of HashMap
-
  * */
 public class AsyncChatServer {
     private static final Logger debug = Logger.getLogger("DEBUG").getParent();
@@ -38,17 +36,14 @@ public class AsyncChatServer {
     private ClientReference client;
     private ClientReference targetClient;
 
-    private static int ID = 0;
+    private static int clientID = 0;
 
     //    private List<ClientReference> clientList;
     private HashMap<Integer, ClientReference> clientTable;
     private Map<String, Object> readInfo;
 
-    //TODO this should be local variables
     private static final StringBuilder availableClients = new StringBuilder();
     private static final int PORT = 5000;
-    private static Integer clientsIndex = 0;
-    private String clientID;
     private int targetClientID;
     private String welcomeMessage;
     private ByteBuffer clientBuffer;
@@ -87,9 +82,8 @@ public class AsyncChatServer {
                                 debug.info("Client " + result.getRemoteAddress() + " connected");
 
                                 client = new ClientReference(clientChannel, false);
-                                clientTable.put(++ID, client);
+                                clientTable.put(++clientID, client);
                                 clientsDump();
-
                                 welcomeMessage = getWelcomeMessage();
                                 availableClients = getClients();
                                 if (availableClients.isEmpty()) {
@@ -155,7 +149,7 @@ public class AsyncChatServer {
     private String getClients() {
 
         for (Map.Entry<Integer, ClientReference> entry : clientTable.entrySet()) {
-            if (ID != entry.getValue().getClientID()) {
+            if (clientID != entry.getValue().getClientID()) {
                 availableClients.append(String.format("\nClient ID: %s\nClient Channel: %s\n",
                         entry.getValue().getClientID(), entry.getValue().getClientChannel()));
             }
@@ -164,7 +158,7 @@ public class AsyncChatServer {
     }
 
     private String getWelcomeMessage() {
-        welcomeMessage = "Welcome to the chat server, your ID is: " + ID
+        welcomeMessage = "Welcome to the chat server, your ID is: " + clientID
                 + "\nPlease type the ID of the client you want to chat to: ";
         return welcomeMessage;
     }
