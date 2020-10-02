@@ -84,17 +84,6 @@ public class AsyncChatClient {
             return "EXIT";
         }
     }
-//  class ReadHandler implements CompletionHandler<Integer, Map<String, Object>> {
-//    @Override
-//    public void completed(Integer result, Map<String, Object> attachment) {
-//
-//    }
-//
-//    @Override
-//    public void failed(Throwable exc, Map<String, Object> attachment) {
-//
-//    }
-//  }
 
     public void stop() {
         try {
@@ -121,7 +110,6 @@ public class AsyncChatClient {
                         client.stop();
                         System.exit(-1);
                     }
-//      System.out.println("Message to server:");
                 }
             }
         });
