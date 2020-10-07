@@ -22,7 +22,6 @@ public class AsyncChatClient {
   private Boolean clientOpenState;
   private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-
   private AsyncChatClient() {
     try {
       client = AsynchronousSocketChannel.open();
