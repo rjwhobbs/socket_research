@@ -65,6 +65,8 @@ public class AsyncWhisperChatServer {
             System.out.println("Something went wrong");
           }
         });
+        System.out.println("Listening on port 5001");
+        blocker();
       }
     } catch (Exception e) {
 
@@ -72,7 +74,7 @@ public class AsyncWhisperChatServer {
     System.out.println("Listening on port 5001");
   }
 
-  private static void blocker() {
+  public static void blocker() {
     try {
       blockerReader.readLine();
       blocker();
