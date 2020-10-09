@@ -131,6 +131,9 @@ public class AsyncWhisperChatServer {
         attachment.buffer.flip();
         int limit = attachment.buffer.limit();
         byte[] bytes = new byte[limit];
+        attachment.buffer.get(bytes, 0, limit);
+        String line = new String(bytes);
+        System.out.println(line);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
