@@ -56,7 +56,7 @@ public class AsyncWhisperChatServer {
             ClientAttachment clientAttachment = new ClientAttachment(client);
             brokers.put(brokerID, clientAttachment);
             System.out.println(brokers.entrySet());
-            client.read(clientAttachment.buffer, clientAttachment, new ReadHandler());
+            client.read(clientAttachment.buffer, clientAttachment, new BrokerReadHandler());
           }
 
           @Override
@@ -103,6 +103,7 @@ public class AsyncWhisperChatServer {
             ClientAttachment clientAttachment = new ClientAttachment(client);
             markets.put(marketID, clientAttachment);
             System.out.println(markets.entrySet());
+            client.read(clientAttachment.buffer, clientAttachment, new MarketReadHandler());
           }
 
           @Override
@@ -119,7 +120,7 @@ public class AsyncWhisperChatServer {
     System.out.println("Listening on port 5001");
   }
 
-  class ReadHandler implements CompletionHandler<Integer, ClientAttachment> {
+  class BrokerReadHandler implements CompletionHandler<Integer, ClientAttachment> {
 
     @Override
     public void completed(Integer result, ClientAttachment attachment) {
@@ -131,6 +132,29 @@ public class AsyncWhisperChatServer {
         String line = new String(bytes);
         System.out.println(line);
         sendToMarket(line);
+        attachment.buffer.clear();
+        attachment.client.read(attachment.buffer, attachment, this);
+      }
+    }
+
+    @Override
+    public void failed(Throwable exc, ClientAttachment attachment) {
+
+    }
+  }
+
+  class MarketReadHandler implements CompletionHandler<Integer, ClientAttachment> {
+
+    @Override
+    public void completed(Integer result, ClientAttachment attachment) {
+      if (result != -1) {
+        attachment.buffer.flip();
+        int limit = attachment.buffer.limit();
+        byte[] bytes = new byte[limit];
+        attachment.buffer.get(bytes, 0, limit);
+        String line = new String(bytes);
+        System.out.println(line);
+        sendToBroker(line);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -181,8 +205,51 @@ public class AsyncWhisperChatServer {
     }
   }
 
+  class SendToBroker implements Runnable {
+    String msg;
+
+    SendToBroker(String msg) {
+      this.msg = msg;
+    }
+
+    @Override
+    public void run() {
+      Matcher m = p.matcher(msg);
+      String brokerId;
+      String extractedMsg;
+
+      if (m.find()) {
+        brokerId = m.group(1);
+        extractedMsg = m.group(2) + "\n";
+
+        ClientAttachment clientAttachment = brokers.get(brokerId);
+        if (clientAttachment != null) {
+          try {
+            clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+          } catch (InterruptedException e) {
+            System.out.println("Error sending to broker:");
+            e.printStackTrace();
+          } catch (ExecutionException e) {
+            System.out.println("Error sending to broker:");
+            e.printStackTrace();
+          }
+        }
+        else {
+          System.out.println("Broker can't be found.");
+        }
+      }
+      else {
+        System.out.println("Bad message format. usage: \\<id> <your message>.");
+      }
+    }
+  }
+
   private void sendToMarket(String msg) {
     pool.execute(new SendToMarket(msg));
+  }
+
+  private void sendToBroker(String msg) {
+    pool.execute(new SendToBroker(msg));
   }
 
   public static void blocker() {
