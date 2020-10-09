@@ -9,8 +9,9 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,6 +19,7 @@ public class AsyncWhisperChatServer {
 
   private static BufferedReader blockerReader = new BufferedReader(new InputStreamReader(System.in));
   private static Pattern p = Pattern.compile("^\\\\(\\d+)\\s+(.+)");
+  private static Executor pool = Executors.newFixedThreadPool(200);
 
   private HashMap<String, ClientAttachment> brokers = new HashMap<>();
   private HashMap<String, ClientAttachment> markets = new HashMap<>();
@@ -128,15 +130,15 @@ public class AsyncWhisperChatServer {
         attachment.buffer.get(bytes, 0, limit);
         String line = new String(bytes);
         System.out.println(line);
-        try {
+//        try {
           sendToMarket(line);
-        } catch (ExecutionException e) {
-          System.out.println("Error sending to market:");
-          e.printStackTrace();
-        } catch (InterruptedException e) {
-          System.out.println("Error sending to market:");
-          e.printStackTrace();
-        }
+//        } catch (ExecutionException e) {
+//          System.out.println("Error sending to market:");
+//          e.printStackTrace();
+//        } catch (InterruptedException e) {
+//          System.out.println("Error sending to market:");
+//          e.printStackTrace();
+//        }
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -148,26 +150,66 @@ public class AsyncWhisperChatServer {
     }
   }
 
-  private void sendToMarket(String msg) throws ExecutionException, InterruptedException {
-    Matcher m = p.matcher(msg);
-    String marketId;
-    String extractedMsg;
+  class SendToMarket implements Runnable {
+    String msg;
 
-    if (m.find()) {
-      marketId = m.group(1);
-      extractedMsg = m.group(2) + "\n";
+    SendToMarket(String msg) {
+      this.msg = msg;
+    }
 
-      ClientAttachment clientAttachment = markets.get(marketId);
-      if (clientAttachment != null) {
-        clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+    @Override
+    public void run() {
+      Matcher m = p.matcher(msg);
+      String marketId;
+      String extractedMsg;
+
+      if (m.find()) {
+        marketId = m.group(1);
+        extractedMsg = m.group(2) + "\n";
+
+        ClientAttachment clientAttachment = markets.get(marketId);
+        if (clientAttachment != null) {
+          try {
+            clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+          } catch (InterruptedException e) {
+            System.out.println("Error sending to market:");
+            e.printStackTrace();
+          } catch (ExecutionException e) {
+            System.out.println("Error sending to market:");
+            e.printStackTrace();
+          }
+        }
+        else {
+          System.out.println("Market can't be found.");
+        }
       }
       else {
-        System.out.println("Market can't be found.");
+        System.out.println("Bad message format. usage: \\<id> <your message>.");
       }
     }
-    else {
-      System.out.println("Bad message format. usage: \\<id> <your message>.");
-    }
+  }
+
+  private void sendToMarket(String msg) {
+    pool.execute(new SendToMarket(msg));
+//    Matcher m = p.matcher(msg);
+//    String marketId;
+//    String extractedMsg;
+//
+//    if (m.find()) {
+//      marketId = m.group(1);
+//      extractedMsg = m.group(2) + "\n";
+//
+//      ClientAttachment clientAttachment = markets.get(marketId);
+//      if (clientAttachment != null) {
+//        clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+//      }
+//      else {
+//        System.out.println("Market can't be found.");
+//      }
+//    }
+//    else {
+//      System.out.println("Bad message format. usage: \\<id> <your message>.");
+//    }
   }
 
   public static void blocker() {

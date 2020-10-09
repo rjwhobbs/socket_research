@@ -21,8 +21,8 @@ class SendToBroker implements Runnable {
 public class MessageDispatcher {
   private static Executor pool = Executors.newFixedThreadPool(200);
 
-//  public static void sendToMarket(String line, HashMap<String, >) {
-//
-//  }
+  public static void sendToMarket(String line, HashMap<String, ClientAttachment> markets) {
+    
+  }
 
 }
