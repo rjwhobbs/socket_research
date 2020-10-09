@@ -14,15 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class ClientAttachment {
-  ByteBuffer buffer = ByteBuffer.allocate(4096);
-  AsynchronousSocketChannel client;
-
-  ClientAttachment(AsynchronousSocketChannel client) {
-    this.client = client;
-  }
-}
-
 public class AsyncWhisperChatServer {
 
   private static BufferedReader blockerReader = new BufferedReader(new InputStreamReader(System.in));
