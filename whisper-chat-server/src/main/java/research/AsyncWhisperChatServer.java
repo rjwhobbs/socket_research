@@ -130,15 +130,7 @@ public class AsyncWhisperChatServer {
         attachment.buffer.get(bytes, 0, limit);
         String line = new String(bytes);
         System.out.println(line);
-//        try {
-          sendToMarket(line);
-//        } catch (ExecutionException e) {
-//          System.out.println("Error sending to market:");
-//          e.printStackTrace();
-//        } catch (InterruptedException e) {
-//          System.out.println("Error sending to market:");
-//          e.printStackTrace();
-//        }
+        sendToMarket(line);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -191,25 +183,6 @@ public class AsyncWhisperChatServer {
 
   private void sendToMarket(String msg) {
     pool.execute(new SendToMarket(msg));
-//    Matcher m = p.matcher(msg);
-//    String marketId;
-//    String extractedMsg;
-//
-//    if (m.find()) {
-//      marketId = m.group(1);
-//      extractedMsg = m.group(2) + "\n";
-//
-//      ClientAttachment clientAttachment = markets.get(marketId);
-//      if (clientAttachment != null) {
-//        clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
-//      }
-//      else {
-//        System.out.println("Market can't be found.");
-//      }
-//    }
-//    else {
-//      System.out.println("Bad message format. usage: \\<id> <your message>.");
-//    }
   }
 
   public static void blocker() {
