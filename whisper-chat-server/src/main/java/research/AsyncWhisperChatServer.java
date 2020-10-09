@@ -9,6 +9,7 @@ import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 class ClientAttachment {
@@ -59,6 +60,7 @@ public class AsyncWhisperChatServer {
             ClientAttachment clientAttachment = new ClientAttachment(client);
             brokers.put(brokerID, clientAttachment);
             System.out.println(brokers.entrySet());
+            client.read(clientAttachment.buffer, clientAttachment, new ReadHandler());
           }
 
           @Override
@@ -73,7 +75,7 @@ public class AsyncWhisperChatServer {
       e.printStackTrace();
     }
   }
-  
+
   public void acceptMarket() {
     try (final AsynchronousServerSocketChannel marketChannel = AsynchronousServerSocketChannel.open()) {
       InetSocketAddress hostAddress = new InetSocketAddress("localhost", 5001);
@@ -119,6 +121,25 @@ public class AsyncWhisperChatServer {
 
     }
     System.out.println("Listening on port 5001");
+  }
+
+  class ReadHandler implements CompletionHandler<Integer, ClientAttachment> {
+
+    @Override
+    public void completed(Integer result, ClientAttachment attachment) {
+      if (result != -1) {
+        attachment.buffer.flip();
+        int limit = attachment.buffer.limit();
+        byte[] bytes = new byte[limit];
+        attachment.buffer.clear();
+        attachment.client.read(attachment.buffer, attachment, this);
+      }
+    }
+
+    @Override
+    public void failed(Throwable exc, ClientAttachment attachment) {
+
+    }
   }
 
   public static void blocker() {
