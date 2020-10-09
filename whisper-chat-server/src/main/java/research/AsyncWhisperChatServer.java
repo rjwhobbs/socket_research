@@ -11,6 +11,8 @@ import java.nio.channels.CompletionHandler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class ClientAttachment {
   ByteBuffer buffer = ByteBuffer.allocate(4096);
@@ -24,6 +26,7 @@ class ClientAttachment {
 public class AsyncWhisperChatServer {
 
   private static BufferedReader blockerReader = new BufferedReader(new InputStreamReader(System.in));
+  private static Pattern p = Pattern.compile("^\\\\(\\d+)\\s+(.+)");
 
   private HashMap<String, ClientAttachment> brokers = new HashMap<>();
   private HashMap<String, ClientAttachment> markets = new HashMap<>();
@@ -134,6 +137,15 @@ public class AsyncWhisperChatServer {
         attachment.buffer.get(bytes, 0, limit);
         String line = new String(bytes);
         System.out.println(line);
+        try {
+          sendToMarket(line);
+        } catch (ExecutionException e) {
+          System.out.println("Error sending to market:");
+          e.printStackTrace();
+        } catch (InterruptedException e) {
+          System.out.println("Error sending to market:");
+          e.printStackTrace();
+        }
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -145,9 +157,32 @@ public class AsyncWhisperChatServer {
     }
   }
 
+  private void sendToMarket(String msg) throws ExecutionException, InterruptedException {
+    Matcher m = p.matcher(msg);
+    String marketId;
+    String extractedMsg;
+
+    if (m.find()) {
+      marketId = m.group(1);
+      extractedMsg = m.group(2) + "\n";
+
+      ClientAttachment clientAttachment = markets.get(marketId);
+      if (clientAttachment != null) {
+        clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+      }
+      else {
+        System.out.println("Market can't be found.");
+      }
+    }
+    else {
+      System.out.println("Bad message format. usage: \\<id> <your message>.");
+    }
+  }
+
   public static void blocker() {
     try {
       blockerReader.readLine();
+      // bruh... do you even block
       blocker();
     }
     catch (IOException e) {
