@@ -131,7 +131,7 @@ public class AsyncWhisperChatServer {
         attachment.buffer.get(bytes, 0, limit);
         String line = new String(bytes);
         System.out.println(line);
-        sendToMarket(line);
+        sendToMarket(line, attachment.id);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -141,6 +141,14 @@ public class AsyncWhisperChatServer {
     public void failed(Throwable exc, ClientAttachment attachment) {
       System.out.println("Failed method in BrokerHandler called: " + exc.getMessage());
     }
+  }
+
+  private void sendToMarket(String msg, String senderId) {
+    pool.execute(new SendToMarket(msg, senderId));
+  }
+
+  private void sendToBroker(String msg) {
+    pool.execute(new SendToBroker(msg));
   }
 
   class MarketReadHandler implements CompletionHandler<Integer, ClientAttachment> {
@@ -167,10 +175,12 @@ public class AsyncWhisperChatServer {
   }
 
   class SendToMarket implements Runnable {
-    String msg;
+    private String msg;
+    private String senderId;
 
-    SendToMarket(String msg) {
+    SendToMarket(String msg, String senderId) {
       this.msg = msg.trim();
+      this.senderId = senderId;
     }
 
     @Override
@@ -200,6 +210,16 @@ public class AsyncWhisperChatServer {
         }
       }
       else {
+        ClientAttachment sendingClient = brokers.get(senderId);
+        if (sendingClient != null) {
+          try {
+            sendingClient.client.write(ByteBuffer.wrap("Bad message format. usage: \\<id> <your message>.\n".getBytes())).get();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          } catch (ExecutionException e) {
+            e.printStackTrace();
+          }
+        }
         System.out.println("Bad message format. usage: \\<id> <your message>.");
       }
     }
@@ -242,14 +262,6 @@ public class AsyncWhisperChatServer {
         System.out.println("Bad message format. usage: \\<id> <your message>.");
       }
     }
-  }
-
-  private void sendToMarket(String msg) {
-    pool.execute(new SendToMarket(msg));
-  }
-
-  private void sendToBroker(String msg) {
-    pool.execute(new SendToBroker(msg));
   }
 
   public static void blocker() {
