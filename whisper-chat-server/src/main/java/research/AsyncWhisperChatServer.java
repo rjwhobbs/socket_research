@@ -200,10 +200,10 @@ public class AsyncWhisperChatServer {
           try {
             clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
           } catch (InterruptedException e) {
-            System.out.println("Error sending to market:");
+            System.out.println("Error (1) sending to market:");
             e.printStackTrace();
           } catch (ExecutionException e) {
-            System.out.println("Error sending to market:");
+            System.out.println("Error (2) sending to market:");
             e.printStackTrace();
           }
         }
