@@ -53,7 +53,7 @@ public class AsyncWhisperChatServer {
             String brokerID = Integer.toString(brokersIndex);
             ++brokersIndex;
             client.write(ByteBuffer.wrap(brokerID.getBytes())).get();
-            ClientAttachment clientAttachment = new ClientAttachment(client);
+            ClientAttachment clientAttachment = new ClientAttachment(client, brokerID);
             brokers.put(brokerID, clientAttachment);
             System.out.println(brokers.entrySet());
             client.read(clientAttachment.buffer, clientAttachment, new BrokerReadHandler());
@@ -100,7 +100,7 @@ public class AsyncWhisperChatServer {
             String marketID = Integer.toString(marketsIndex);
             ++marketsIndex;
             client.write(ByteBuffer.wrap(marketID.getBytes())).get();
-            ClientAttachment clientAttachment = new ClientAttachment(client);
+            ClientAttachment clientAttachment = new ClientAttachment(client, marketID);
             markets.put(marketID, clientAttachment);
             System.out.println(markets.entrySet());
             client.read(clientAttachment.buffer, clientAttachment, new MarketReadHandler());
@@ -139,7 +139,7 @@ public class AsyncWhisperChatServer {
 
     @Override
     public void failed(Throwable exc, ClientAttachment attachment) {
-
+      System.out.println("Failed method in BrokerHandler called: " + exc.getMessage());
     }
   }
 
@@ -170,7 +170,7 @@ public class AsyncWhisperChatServer {
     String msg;
 
     SendToMarket(String msg) {
-      this.msg = msg;
+      this.msg = msg.trim();
     }
 
     @Override
