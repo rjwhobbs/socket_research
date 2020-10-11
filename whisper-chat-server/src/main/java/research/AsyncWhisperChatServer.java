@@ -145,14 +145,6 @@ public class AsyncWhisperChatServer {
     }
   }
 
-  private void sendToMarket(String msg, String senderId) {
-    pool.execute(new SendToMarket(msg, senderId));
-  }
-
-  private void sendToBroker(String msg) {
-    pool.execute(new SendToBroker(msg));
-  }
-
   class MarketReadHandler implements CompletionHandler<Integer, ClientAttachment> {
 
     @Override
@@ -164,7 +156,7 @@ public class AsyncWhisperChatServer {
         attachment.buffer.get(bytes, 0, limit);
         String line = new String(bytes);
         System.out.println(line);
-        sendToBroker(line);
+        sendToBroker(line, attachment.id);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
@@ -174,6 +166,14 @@ public class AsyncWhisperChatServer {
     public void failed(Throwable exc, ClientAttachment attachment) {
 
     }
+  }
+
+  private void sendToMarket(String msg, String senderId) {
+    pool.execute(new SendToMarket(msg, senderId));
+  }
+
+  private void sendToBroker(String msg, String senderId) {
+    pool.execute(new SendToBroker(msg, senderId));
   }
 
   class SendToMarket implements Runnable {
@@ -231,10 +231,12 @@ public class AsyncWhisperChatServer {
   }
 
   class SendToBroker implements Runnable {
-    String msg;
+    private String msg;
+    private String senderId;
 
-    SendToBroker(String msg) {
-      this.msg = msg;
+    SendToBroker(String msg, String senderId) {
+      this.msg = msg.trim();
+      this.senderId = senderId;
     }
 
     @Override
@@ -260,11 +262,24 @@ public class AsyncWhisperChatServer {
           }
         }
         else {
-          System.out.println("Broker can't be found.");
+          printToSender("Broker can't be found.\n");
         }
       }
       else {
-        System.out.println("Bad message format. usage: \\<id> <your message>.");
+        printToSender("Bad message format. usage: \\<id> <your message>.\n");
+      }
+    }
+
+    private void printToSender(String message) {
+      ClientAttachment sendingClient = markets.get(senderId);
+      if (sendingClient != null) {
+        try {
+          sendingClient.client.write(ByteBuffer.wrap(message.getBytes())).get();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (ExecutionException e) {
+          e.printStackTrace();
+        }
       }
     }
   }
