@@ -206,21 +206,24 @@ public class AsyncWhisperChatServer {
           }
         }
         else {
-          System.out.println("Market can't be found.");
+          printToSender("Market can't be found.\n");
         }
       }
       else {
-        ClientAttachment sendingClient = brokers.get(senderId);
-        if (sendingClient != null) {
-          try {
-            sendingClient.client.write(ByteBuffer.wrap("Bad message format. usage: \\<id> <your message>.\n".getBytes())).get();
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          } catch (ExecutionException e) {
-            e.printStackTrace();
-          }
+        printToSender("Bad message format. usage: \\<id> <your message>.\n");
+      }
+    }
+
+    private void printToSender(String message) {
+      ClientAttachment sendingClient = brokers.get(senderId);
+      if (sendingClient != null) {
+        try {
+          sendingClient.client.write(ByteBuffer.wrap(message.getBytes())).get();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        } catch (ExecutionException e) {
+          e.printStackTrace();
         }
-        System.out.println("Bad message format. usage: \\<id> <your message>.");
       }
     }
   }
