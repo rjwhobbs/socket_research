@@ -51,8 +51,9 @@ public class AsyncWhisperChatServer {
 
           private void registerBroker(AsynchronousSocketChannel client) throws ExecutionException, InterruptedException {
             String brokerID = Integer.toString(brokersIndex);
+            String welcomeMsg = "Welcome to whisper chat, your ID is " + brokerID + "\n";
             ++brokersIndex;
-            client.write(ByteBuffer.wrap(brokerID.getBytes())).get();
+            client.write(ByteBuffer.wrap(welcomeMsg.getBytes())).get();
             ClientAttachment clientAttachment = new ClientAttachment(client, brokerID);
             brokers.put(brokerID, clientAttachment);
             System.out.println(brokers.entrySet());
@@ -98,8 +99,9 @@ public class AsyncWhisperChatServer {
 
           private void registerMarket(AsynchronousSocketChannel client) throws ExecutionException, InterruptedException {
             String marketID = Integer.toString(marketsIndex);
+            String welcomeMsg = "Welcome to whisper chat, your ID is " + marketID + "\n";
             ++marketsIndex;
-            client.write(ByteBuffer.wrap(marketID.getBytes())).get();
+            client.write(ByteBuffer.wrap(welcomeMsg.getBytes())).get();
             ClientAttachment clientAttachment = new ClientAttachment(client, marketID);
             markets.put(marketID, clientAttachment);
             System.out.println(markets.entrySet());
