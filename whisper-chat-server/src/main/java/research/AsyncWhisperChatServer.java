@@ -45,7 +45,7 @@ public class AsyncWhisperChatServer {
                 System.out.println("Router Error in acceptBroker(): ");
                 e.printStackTrace();
               }
-              System.out.println("Broker Connected");
+              System.out.println("Broker Connected: ");
             }
           }
 
@@ -137,6 +137,15 @@ public class AsyncWhisperChatServer {
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
       }
+      else {
+        try {
+          attachment.client.close();
+          attachment.client = null;
+        } catch (IOException e) {
+          System.out.println("ola");
+          e.printStackTrace();
+        }
+      }
     }
 
     @Override
@@ -159,6 +168,15 @@ public class AsyncWhisperChatServer {
         sendToBroker(line, attachment.id);
         attachment.buffer.clear();
         attachment.client.read(attachment.buffer, attachment, this);
+      }
+      else {
+        try {
+          attachment.client.close();
+          attachment.client = null;
+        } catch (IOException e) {
+          System.out.println("ola");
+          e.printStackTrace();
+        }
       }
     }
 
@@ -198,7 +216,12 @@ public class AsyncWhisperChatServer {
         ClientAttachment clientAttachment = markets.get(marketId);
         if (clientAttachment != null) {
           try {
-            clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+            if (clientAttachment.client != null) {
+              clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+            }
+            else {
+              printToSender("Market has disconnected.\n");
+            }
           } catch (InterruptedException e) {
             System.out.println("Error (1) sending to market:");
             e.printStackTrace();
@@ -252,7 +275,12 @@ public class AsyncWhisperChatServer {
         ClientAttachment clientAttachment = brokers.get(brokerId);
         if (clientAttachment != null) {
           try {
-            clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+            if (clientAttachment.client != null) {
+              clientAttachment.client.write(ByteBuffer.wrap(extractedMsg.getBytes())).get();
+            }
+            else {
+              printToSender("Broker has disconnected.\n");
+            }
           } catch (InterruptedException e) {
             System.out.println("Error sending to broker:");
             e.printStackTrace();
