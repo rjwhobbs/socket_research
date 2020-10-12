@@ -25,6 +25,7 @@
     <module>async-chat-client-zero</module>
     <module>fix-engine</module>
     <module>whisper-chat-server</module>
+      <module>psuedo-market-zero</module>
   </modules>
 
   <name>do_you_even_socket</name>
