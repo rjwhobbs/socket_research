@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public class AsyncWhisperChatServer {
 
   private static BufferedReader blockerReader = new BufferedReader(new InputStreamReader(System.in));
-  private static Pattern p = Pattern.compile("^\\\\(\\d+)\\s+(.+)");
+  private static Pattern sendPattern = Pattern.compile("^\\\\(\\d+)\\s+(.+)");
   private static Executor pool = Executors.newFixedThreadPool(200);
 
   private HashMap<String, ClientAttachment> brokers = new HashMap<>();
@@ -205,13 +205,13 @@ public class AsyncWhisperChatServer {
 
     @Override
     public void run() {
-      Matcher m = p.matcher(msg);
+      Matcher m = sendPattern.matcher(msg);
       String marketId;
       String extractedMsg;
 
       if (m.find()) {
         marketId = m.group(1);
-        extractedMsg = m.group(2) + "\n";
+        extractedMsg = "broker#" + this.senderId + ": " + m.group(2) + "\n";
 
         ClientAttachment clientAttachment = markets.get(marketId);
         if (clientAttachment != null) {
@@ -264,7 +264,7 @@ public class AsyncWhisperChatServer {
 
     @Override
     public void run() {
-      Matcher m = p.matcher(msg);
+      Matcher m = sendPattern.matcher(msg);
       String brokerId;
       String extractedMsg;
 
