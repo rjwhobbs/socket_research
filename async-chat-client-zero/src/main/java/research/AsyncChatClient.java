@@ -28,7 +28,6 @@ public class AsyncChatClient {
       InetSocketAddress hostAddress = new InetSocketAddress("localhost", 5000);
       future = client.connect(hostAddress);
       start();
-
     } catch (IOException e) {
       e.printStackTrace();
     }
