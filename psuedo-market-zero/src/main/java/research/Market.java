@@ -18,6 +18,8 @@ public class Market {
 //  private Boolean clientOpenState;
   private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
   private static Pattern senderPattern = Pattern.compile("^broker#(\\d+)");
+  private static Pattern idPattern = Pattern.compile("^Welcome to whisper chat, your ID is (\\d+)$");
+  private static String marketId;
 
   Market() {
     try {
@@ -34,15 +36,36 @@ public class Market {
     }
   }
 
-  void readHandler() throws ExecutionException, InterruptedException {
+  void readId() throws ExecutionException, InterruptedException, IOException {
+    String msgFromRouter;
+    ByteBuffer buffer = ByteBuffer.allocate(64);
+    int bytesRead = client.read(buffer).get();
+    if (bytesRead == -1) {
+      System.out.println("Server has disconnected.");
+      // Do other things
+      this.client.close();
+      System.exit(0);
+    }
+    buffer.flip();
+    msgFromRouter = new String(buffer.array());
+    msgFromRouter = msgFromRouter.trim();
+    Matcher m = idPattern.matcher(msgFromRouter);
+    if (m.find()) {
+      this.marketId = m.group(1);
+    }
+    System.out.println("Market #" + this.marketId + " received");
+  }
+
+  void readHandler() throws ExecutionException, InterruptedException, IOException {
     String msgFromRouter;
     String senderId = "";
-    String response = "\1 potato";
+    String response = "";
     ByteBuffer buffer = ByteBuffer.allocate(4096);
     int bytesRead = client.read(buffer).get();
     if (bytesRead == -1) {
       System.out.println("Server has disconnected.");
       // Do other things
+      this.client.close();
       System.exit(0);
     }
     buffer.flip();
@@ -60,12 +83,13 @@ public class Market {
     Market market = new Market();
     // readId
     try {
+      market.readId();
       while (true) {
         market.readHandler();
       }
     } catch (InterruptedException e) {
       e.printStackTrace();
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | IOException e) {
       e.printStackTrace();
     }
   }
