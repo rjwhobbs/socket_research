@@ -26,6 +26,7 @@
     <module>fix-engine</module>
     <module>whisper-chat-server</module>
       <module>psuedo-market-zero</module>
+      <module>pseudo-broker</module>
   </modules>
 
   <name>do_you_even_socket</name>
