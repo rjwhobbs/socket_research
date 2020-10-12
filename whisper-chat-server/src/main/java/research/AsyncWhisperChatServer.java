@@ -270,7 +270,7 @@ public class AsyncWhisperChatServer {
 
       if (m.find()) {
         brokerId = m.group(1);
-        extractedMsg = m.group(2) + "\n";
+        extractedMsg = "market#" + this.senderId + ": " + m.group(2) + "\n";
 
         ClientAttachment clientAttachment = brokers.get(brokerId);
         if (clientAttachment != null) {

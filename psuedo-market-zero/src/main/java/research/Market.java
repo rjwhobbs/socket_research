@@ -81,7 +81,7 @@ public class Market {
 
   public static void main(String[] args) {
     Market market = new Market();
-
+    // readId
     try {
       market.readId();
       while (true) {
