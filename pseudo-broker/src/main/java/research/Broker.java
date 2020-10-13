@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
@@ -15,9 +17,11 @@ public class Broker {
   private AsynchronousSocketChannel client;
   private Future<Void> future;
   private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+  private static BufferedReader blockerReader = new BufferedReader(new InputStreamReader(System.in));
   private static Pattern senderPattern = Pattern.compile("^market#(\\d+)");
   private static Pattern idPattern = Pattern.compile("^Welcome to whisper chat, your ID is (\\d+)$");
   private static String brokerId;
+  private HashMap<String, Object> attachment = new HashMap<>();
 
   Broker() {
     try {
@@ -54,7 +58,7 @@ public class Broker {
     System.out.println("Broker id #" + this.brokerId + " received");
   }
 
-  void readHandler() throws ExecutionException, InterruptedException, IOException {
+  void readWriteHandler() throws ExecutionException, InterruptedException, IOException {
     String msgFromRouter;
     String senderId = "";
     String response = "";
@@ -80,6 +84,47 @@ public class Broker {
     buffer.flip();
     msgFromRouter = new String(buffer.array());
     System.out.println(msgFromRouter);
+  }
+
+  private void readHandler() {
+    ByteBuffer buffer = ByteBuffer.allocate(512);
+    ReadAttachment readAttachment = new ReadAttachment(buffer);
+    client.read(readAttachment.buffer, readAttachment, new ReadHandler());
+    blocker();
+  }
+
+  class ReadHandler implements CompletionHandler<Integer, ReadAttachment> {
+    @Override
+    public void completed(Integer result, ReadAttachment attachment) {
+      if (result != -1) {
+        System.out.println("Here bru: " + result);
+        attachment.buffer.flip();
+        attachment.buffer.clear();
+        client.read(attachment.buffer, attachment, this);
+      }
+    }
+
+    @Override
+    public void failed(Throwable exc, ReadAttachment attachment) {
+
+    }
+  }
+
+  class ReadAttachment {
+    public ByteBuffer buffer;
+
+    ReadAttachment(ByteBuffer buffer) {
+      this.buffer = buffer;
+    }
+  }
+
+  public static void blocker() {
+    try {
+      blockerReader.readLine();
+      blocker();
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
   }
 
   public static void main(String[] args) {
