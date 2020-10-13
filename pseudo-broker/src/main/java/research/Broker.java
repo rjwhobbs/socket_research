@@ -70,6 +70,7 @@ public class Broker {
       }
       System.out.println("Broker has disconnected.");
       client.close();
+      reader.close();
       System.exit(0);
     } catch (IOException e) {
       e.printStackTrace();
@@ -93,6 +94,17 @@ public class Broker {
         System.out.print(line);;
         attachment.buffer.clear();
         client.read(attachment.buffer, attachment, this);
+      }
+      else {
+        System.out.println("Server has disconnected, exiting...");
+        try {
+          client.close();
+          reader.close();
+          // So readLine() is still blocking on the other Thread. Sys won't exit idf the server goes down.
+          System.exit(0);
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     }
 
