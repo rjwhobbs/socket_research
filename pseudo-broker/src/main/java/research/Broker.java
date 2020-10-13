@@ -69,9 +69,7 @@ public class Broker {
         client.write(ByteBuffer.wrap(line.getBytes())).get();
       }
       System.out.println("Broker has disconnected.");
-      client.close();
-      reader.close();
-      System.exit(0);
+      stop();
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InterruptedException e) {
@@ -79,7 +77,6 @@ public class Broker {
     } catch (ExecutionException e) {
       e.printStackTrace();
     }
-//    blocker();
   }
 
   class ReadHandler implements CompletionHandler<Integer, ReadAttachment> {
@@ -96,15 +93,8 @@ public class Broker {
         client.read(attachment.buffer, attachment, this);
       }
       else {
-        System.out.println("Server has disconnected, exiting...");
-        try {
-          client.close();
-          reader.close();
-          // So readLine() is still blocking on the other Thread. Sys won't exit idf the server goes down.
-          System.exit(0);
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        System.out.println("Server has disconnected, please hit enter to close the broker.");
+        stop();
       }
     }
 
@@ -122,6 +112,19 @@ public class Broker {
     }
   }
 
+  private void stop() {
+    try {
+//      this.notifyAll();
+      client.close();
+      reader.close();
+      System.out.println("cheers");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    System.exit(0);
+  }
+
+
   public static void blocker() {
     try {
       blockerReader.readLine();
@@ -133,7 +136,7 @@ public class Broker {
 
   public static void main(String[] args) {
     Broker broker = new Broker();
-    // Needs error handling for in case the server isn't running.
+    // Needs error handling for in case the server isn't running when first connecting.
     try {
       broker.readId();
       while (true) {
