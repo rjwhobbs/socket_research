@@ -87,9 +87,23 @@ public class Broker {
   }
 
   private void readHandler() {
+    String line;
     ByteBuffer buffer = ByteBuffer.allocate(512);
     ReadAttachment readAttachment = new ReadAttachment(buffer);
     client.read(readAttachment.buffer, readAttachment, new ReadHandler());
+
+    try {
+      line = reader.readLine();
+      if (line != null) {
+        client.write(ByteBuffer.wrap(line.getBytes())).get();
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+    }
     blocker();
   }
 
@@ -97,8 +111,12 @@ public class Broker {
     @Override
     public void completed(Integer result, ReadAttachment attachment) {
       if (result != -1) {
-        System.out.println("Here bru: " + result);
         attachment.buffer.flip();
+        int limit = attachment.buffer.limit();
+        byte[] bytes = new byte[limit];
+        attachment.buffer.get(bytes, 0, limit);
+        String line = new String(bytes);
+        System.out.print(line);;
         attachment.buffer.clear();
         client.read(attachment.buffer, attachment, this);
       }
@@ -108,6 +126,10 @@ public class Broker {
     public void failed(Throwable exc, ReadAttachment attachment) {
 
     }
+  }
+
+  private void writeHandler() {
+
   }
 
   class ReadAttachment {
