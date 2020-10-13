@@ -58,45 +58,19 @@ public class Broker {
     System.out.println("Broker id #" + this.brokerId + " received");
   }
 
-  void readWriteHandler() throws ExecutionException, InterruptedException, IOException {
-    String msgFromRouter;
-    String senderId = "";
-    String response = "";
-    ByteBuffer buffer = ByteBuffer.allocate(4096);
-    String line = reader.readLine();
-    if (line != null) {
-      // If the server disconnects before this is run an IO exception will be thrown.
-      client.write(ByteBuffer.wrap(line.getBytes())).get();
-    }
-    else {
-      System.out.println("Server has disconnected.");
-      this.client.close();
-      reader.close();
-      System.exit(0);
-    }
-    int bytesRead = client.read(buffer).get();
-    if (bytesRead == -1) {
-      System.out.println("Server has disconnected.");
-      this.client.close();
-      reader.close();
-      System.exit(0);
-    }
-    buffer.flip();
-    msgFromRouter = new String(buffer.array());
-    System.out.println(msgFromRouter);
-  }
-
-  private void readHandler() {
+  private void readWriteHandler() {
     String line;
     ByteBuffer buffer = ByteBuffer.allocate(512);
     ReadAttachment readAttachment = new ReadAttachment(buffer);
     client.read(readAttachment.buffer, readAttachment, new ReadHandler());
 
     try {
-      line = reader.readLine();
-      if (line != null) {
+      while ((line = reader.readLine()) != null) {
         client.write(ByteBuffer.wrap(line.getBytes())).get();
       }
+      System.out.println("Broker has disconnected.");
+      client.close();
+      System.exit(0);
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InterruptedException e) {
@@ -104,7 +78,7 @@ public class Broker {
     } catch (ExecutionException e) {
       e.printStackTrace();
     }
-    blocker();
+//    blocker();
   }
 
   class ReadHandler implements CompletionHandler<Integer, ReadAttachment> {
@@ -126,10 +100,6 @@ public class Broker {
     public void failed(Throwable exc, ReadAttachment attachment) {
 
     }
-  }
-
-  private void writeHandler() {
-
   }
 
   class ReadAttachment {
@@ -155,7 +125,7 @@ public class Broker {
     try {
       broker.readId();
       while (true) {
-        broker.readHandler();
+        broker.readWriteHandler();
       }
     } catch (InterruptedException e) {
       e.printStackTrace();
