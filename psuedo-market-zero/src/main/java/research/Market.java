@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
@@ -20,6 +21,7 @@ public class Market {
   private static Pattern senderPattern = Pattern.compile("^broker#(\\d+)");
   private static Pattern idPattern = Pattern.compile("^Welcome to whisper chat, your ID is (\\d+)$");
   private static String marketId;
+  private HashMap<String, Integer> Stock;
 
   Market() {
     try {
@@ -27,6 +29,9 @@ public class Market {
       InetSocketAddress hostAddress = new InetSocketAddress("localhost", 5001);
       future = client.connect(hostAddress);
       future.get();
+      Stock = new HashMap<String, Integer>();
+      Stock.put("Guitars", 42);
+      Stock.put("Keyboards", 42);
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InterruptedException e) {
@@ -77,6 +82,26 @@ public class Market {
       response = "\\" + senderId + " acknowledged\n";
       client.write(ByteBuffer.wrap(response.getBytes())).get();
     }
+  }
+
+  boolean MarketOps(HashMap<String, Integer> stock, String instrument, int amount, String op) {
+    if (stock.containsKey(instrument)) {   
+      if (op.toLowerCase() == "buy") {
+        if (stock.get(instrument) < amount)
+          return false;
+        else {
+          stock.put(instrument, (stock.get(instrument) - amount));
+          this.Stock = stock;
+          return true;
+        }
+      }
+      else if (op.toLowerCase() == "sell") {
+        stock.put(instrument, (stock.get(instrument) + amount));
+        this.Stock = stock;
+        return true;
+      }
+    }
+    return false;
   }
 
   public static void main(String[] args) {
